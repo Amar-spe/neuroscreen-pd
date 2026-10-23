@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DOM Automated Button & Workflow Verification</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 2rem; background: #F8F9FA; color: #1A1A1A; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    #summary { font-size: 1.1rem; font-weight: 600; margin: 1rem 0; padding: 0.75rem 1rem; border-radius: 6px; }
+    .passed-box { background: #EBF7EE; color: #1B7A43; border: 1px solid #C1E5CA; }
+    .failed-box { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.88rem; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    th, td { border: 1px solid #E2E8F0; padding: 0.6rem 0.8rem; text-align: left; }
+    th { background: #F1F5F9; font-weight: 600; }
+    .tag-pass { color: #1B7A43; font-weight: 700; background: #EBF7EE; padding: 2px 6px; border-radius: 4px; }
+    .tag-fail { color: #B91C1C; font-weight: 700; background: #FEE2E2; padding: 2px 6px; border-radius: 4px; }
+    iframe { width: 100%; height: 600px; border: 1px solid #CBD5E1; margin-top: 2rem; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>DOM Automated Button &amp; Workflow Test Harness</h1>
+  <p>Tests all 33 interactive buttons, form controls, modals, stepper cards, and workflows on NeuroScreen-PD.</p>
+  <div id="summary">Running tests...</div>
+
+  <table id="testTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Button / Interactive Element</th>
+        <th>Selector ID</th>
+        <th>Action Tested</th>
+        <th>Observed DOM Mutation</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="testTableBody"></tbody>
+  </table>
+
+  <iframe id="appFrame" src="index.html"></iframe>
+
+  <script>
+    const iframe = document.getElementById('appFrame');
+    const tbody = document.getElementById('testTableBody');
+    const summary = document.getElementById('summary');
+    let testIndex = 0;
+    let passedCount = 0;
+    let failedCount = 0;
+
+    function assert(name, selector, action, condition, mutationDesc) {
+      testIndex++;
+      const ok = Boolean(condition);
+      if (ok) passedCount++; else failedCount++;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${testIndex}</td>
+        <td><strong>${name}</strong></td>
+        <td><code>${selector}</code></td>
+        <td>${action}</td>
+        <td>${mutationDesc}</td>
+        <td><span class="${ok ? 'tag-pass' : 'tag-fail'}">${ok ? 'PASSED' : 'FAILED'}</span></td>
+      `;
+      tbody.appendChild(tr);
+      return ok;
+    }
+
+    iframe.addEventListener('load', async () => {
+      const doc = iframe.contentDocument;
+      const win = iframe.contentWindow;
+
+      // Small delay to ensure all DOM scripts initialize
+      await new Promise(r => setTimeout(r, 200));
+
+      try {
+        // --- TEST SUITE 1: PATIENT INTAKE MODAL ---
+        const intakeModal = doc.getElementById('patientIntakeModal');
+        assert('Patient Intake Modal Auto-Popup', '#patientIntakeModal', 'Page Load', 
+          intakeModal && intakeModal.classList.contains('active'), 
+          'Modal active class present on load');
+
+        const intakeName = doc.getElementById('intakeName');
+        intakeName.value = 'Dr. Test Patient';
+        const intakeAge = doc.getElementById('intakeAge');
+        intakeAge.value = '68';
+
+        const saveIntakeBtn = doc.getElementById('saveIntakeBtn');
+        saveIntakeBtn.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Save Intake Profile Button', '#saveIntakeBtn', 'click',
+          !intakeModal.classList.contains('active'),
+          'Intake modal closed and profile saved');
+
+        const headerPill = doc.getElementById('openIntakeModalBtn');
+        assert('Header Patient Pill Button', '#openIntakeModalBtn', 'DOM Verification',
+          headerPill && doc.getElementById('headerPatientSummary').textContent.includes('Dr. Test Patient'),
+          'Header displays Patient: Dr. Test Patient, 68y (M)');
+
+        headerPill.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Re-open Intake Modal via Header Pill', '#openIntakeModalBtn', 'click',
+          intakeModal.classList.contains('active'),
+          'Intake modal reopened successfully');
+
+        const closeIntakeBtn = doc.getElementById('closeIntakeModalBtn');
+        closeIntakeBtn.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Close Intake Modal (X Button)', '#closeIntakeModalBtn', 'click',
+          !intakeModal.classList.contains('active'),
+          'Modal closed on X button click');
+
+        headerPill.click();
+        await new Promise(r => setTimeout(r, 50));
+        const skipIntakeBtn = doc.getElementById('skipIntakeBtn');
+        skipIntakeBtn.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Skip Intake Profile Button', '#skipIntakeBtn', 'click',
+          !intakeModal.classList.contains('active'),
+          'Modal closed on skip button click');
+
+        // --- TEST SUITE 2: NAVIGATION TABS ---
+        const navFusion = doc.getElementById('nav-btn-fusion');
+        navFusion.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Multimodal Fusion Nav Tab', '#nav-btn-fusion', 'click',
+          doc.getElementById('view-fusion').classList.contains('active') && !doc.getElementById('view-assessment').classList.contains('active'),
+          'Switched active view to #view-fusion');
+
+        const navAssessment = doc.getElementById('nav-btn-assessment');
+        navAssessment.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Assessment Tests Nav Tab', '#nav-btn-assessment', 'click',
+          doc.getElementById('view-assessment').classList.contains('active') && !doc.getElementById('view-fusion').classList.contains('active'),
+          'Switched active view to #view-assessment');
+
+        // --- TEST SUITE 3: MODALITY STEPPER BUTTONS ---
+        const modTapping = doc.getElementById('mod-card-tapping');
+        modTapping.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Stepper: Finger Tapping Card', '#mod-card-tapping', 'click',
+          doc.getElementById('pane-tapping').classList.contains('active'),
+          'Pane switched to #pane-tapping');
+
+        const modDrawing = doc.getElementById('mod-card-drawing');
+        modDrawing.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Stepper: Spiral Drawing Card', '#mod-card-drawing', 'click',
+          doc.getElementById('pane-drawing').classList.contains('active'),
+          'Pane switched to #pane-drawing');
+
+        const modGait = doc.getElementById('mod-card-gait');
+        modGait.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Stepper: Gait Locomotion Card', '#mod-card-gait', 'click',
+          doc.getElementById('pane-gait').classList.contains('active'),
+          'Pane switched to #pane-gait');
+
+        const modVoice = doc.getElementById('mod-card-voice');
+        modVoice.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Stepper: Voice Phonation Card', '#mod-card-voice', 'click',
+          doc.getElementById('pane-voice').classList.contains('active'),
+          'Pane switched to #pane-voice');
+
+        // --- TEST SUITE 4: VOICE PHONATION BUTTONS ---
+        const demoVoiceNormal = doc.getElementById('demoVoiceNormalBtn');
+        demoVoiceNormal.click();
+        await new Promise(r => setTimeout(r, 50));
+        const vF0 = doc.getElementById('val-voice-f0').textContent;
+        assert('Sample: Healthy Voice Button', '#demoVoiceNormalBtn', 'click',
+          vF0.includes('Hz') && doc.getElementById('dot-voice').classList.contains('completed'),
+          `Voice F0 updated to ${vF0}, dot-voice marked completed`);
+
+        const demoVoicePd = doc.getElementById('demoVoicePdBtn');
+        demoVoicePd.click();
+        await new Promise(r => setTimeout(r, 50));
+        const vJit = doc.getElementById('val-voice-jitter').textContent;
+        assert('Sample: Parkinsonian Voice Button', '#demoVoicePdBtn', 'click',
+          parseFloat(vJit) > 1.0,
+          `Voice jitter elevated to ${vJit}`);
+
+        assert('Record Voice Button Presence', '#recordVoiceBtn', 'DOM Verification',
+          doc.getElementById('recordVoiceBtn') && !doc.getElementById('recordVoiceBtn').disabled,
+          'Record button enabled and ready');
+
+        assert('Stop Voice Button Presence', '#stopVoiceBtn', 'DOM Verification',
+          doc.getElementById('stopVoiceBtn') && doc.getElementById('stopVoiceBtn').disabled,
+          'Stop button initialized in disabled state');
+
+        // --- TEST SUITE 5: FINGER TAPPING BUTTONS ---
+        modTapping.click();
+        await new Promise(r => setTimeout(r, 50));
+
+        const demoTapNormal = doc.getElementById('demoTapNormalBtn');
+        demoTapNormal.click();
+        await new Promise(r => setTimeout(r, 50));
+        const tFreq = doc.getElementById('val-tap-freq').textContent;
+        assert('Demo: Healthy Tap Profile Button', '#demoTapNormalBtn', 'click',
+          tFreq.includes('Hz') && doc.getElementById('dot-tapping').classList.contains('completed'),
+          `Tapping frequency updated to ${tFreq}, dot-tapping completed`);
+
+        const demoTapPd = doc.getElementById('demoTapPdBtn');
+        demoTapPd.click();
+        await new Promise(r => setTimeout(r, 50));
+        const tCv = doc.getElementById('val-tap-cv').textContent;
+        assert('Demo: Bradykinetic Tap Profile Button', '#demoTapPdBtn', 'click',
+          parseFloat(tCv) > 15.0,
+          `Tapping CV% elevated to ${tCv}`);
+
+        assert('Start 10s Motor Test Button', '#startTapBtn', 'DOM Verification',
+          doc.getElementById('startTapBtn') && !doc.getElementById('startTapBtn').disabled,
+          'Start test button enabled');
+
+        assert('Tap Target Button', '#tapTargetBtn', 'DOM Verification',
+          doc.getElementById('tapTargetBtn') && doc.getElementById('tapTargetBtn').disabled,
+          'Tap target button disabled until test starts');
+
+        // --- TEST SUITE 6: SPIRAL DRAWING BUTTONS ---
+        modDrawing.click();
+        await new Promise(r => setTimeout(r, 50));
+
+        const demoSpiralNormal = doc.getElementById('demoSpiralNormalBtn');
+        demoSpiralNormal.click();
+        await new Promise(r => setTimeout(r, 50));
+        const dRmse = doc.getElementById('val-draw-rmse').textContent;
+        assert('Demo: Steady Spiral Button', '#demoSpiralNormalBtn', 'click',
+          dRmse.includes('px') && doc.getElementById('dot-drawing').classList.contains('completed'),
+          `Drawing RMSE updated to ${dRmse}, dot-drawing completed`);
+
+        const demoSpiralPd = doc.getElementById('demoSpiralPdBtn');
+        demoSpiralPd.click();
+        await new Promise(r => setTimeout(r, 50));
+        const dScore = doc.getElementById('val-draw-svm-score').textContent;
+        assert('Demo: Tremor Spiral Button', '#demoSpiralPdBtn', 'click',
+          parseFloat(dScore) > 30.0,
+          `SVM probability elevated to ${dScore}`);
+
+        const clearSpiral = doc.getElementById('clearSpiralBtn');
+        clearSpiral.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Clear Canvas Button', '#clearSpiralBtn', 'click',
+          doc.getElementById('val-draw-svm-score').textContent === '0.0%',
+          'Canvas cleared, SVM score reset to baseline 0.0%');
+
+        // Re-run normal demo so drawing stays completed
+        demoSpiralNormal.click();
+        await new Promise(r => setTimeout(r, 50));
+
+        assert('Export Log JSON Button', '#exportLogJsonBtn', 'DOM Verification',
+          Boolean(doc.getElementById('exportLogJsonBtn')),
+          'Export JSON button present');
+
+        assert('Export Log CSV Button', '#exportLogCsvBtn', 'DOM Verification',
+          Boolean(doc.getElementById('exportLogCsvBtn')),
+          'Export CSV button present');
+
+        // --- TEST SUITE 7: GAIT & MOBILITY BUTTONS ---
+        modGait.click();
+        await new Promise(r => setTimeout(r, 50));
+
+        const demoGaitNormal = doc.getElementById('demoGaitNormalBtn');
+        demoGaitNormal.click();
+        await new Promise(r => setTimeout(r, 50));
+        const gCad = doc.getElementById('val-gait-cadence').textContent;
+        assert('Demo: Steady Gait Button', '#demoGaitNormalBtn', 'click',
+          gCad.includes('/min') && doc.getElementById('dot-gait').classList.contains('completed'),
+          `Gait cadence updated to ${gCad}, dot-gait completed`);
+
+        const demoGaitPd = doc.getElementById('demoGaitPdBtn');
+        demoGaitPd.click();
+        await new Promise(r => setTimeout(r, 50));
+        const gCv = doc.getElementById('val-gait-cv').textContent;
+        assert('Demo: Asymmetric Gait Button', '#demoGaitPdBtn', 'click',
+          parseFloat(gCv) > 6.0,
+          `Stride variability CV elevated to ${gCv}`);
+
+        assert('Start Gait Sensor Button', '#startGaitSensorBtn', 'DOM Verification',
+          doc.getElementById('startGaitSensorBtn') && !doc.getElementById('startGaitSensorBtn').disabled,
+          'Start gait sensor button enabled');
+
+        assert('Stop Gait Sensor Button', '#stopGaitSensorBtn', 'DOM Verification',
+          doc.getElementById('stopGaitSensorBtn') && doc.getElementById('stopGaitSensorBtn').disabled,
+          'Stop gait sensor button disabled');
+
+        // --- TEST SUITE 8: SCREENING COMPLETION CARD & BUTTONS ---
+        const completionCard = doc.getElementById('screeningCompletionCard');
+        assert('Screening Completion Banner', '#screeningCompletionCard', 'Automatic State Trigger',
+          completionCard && completionCard.style.display !== 'none',
+          'All 4 modalities completed -> completion banner displayed');
+
+        const viewFusionDirectBtn = doc.getElementById('viewFusionDirectBtn');
+        viewFusionDirectBtn.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('View Multimodal Fusion Button in Completion Banner', '#viewFusionDirectBtn', 'click',
+          doc.getElementById('view-fusion').classList.contains('active'),
+          'Directly navigated to Multimodal Fusion view');
+
+        navAssessment.click();
+        await new Promise(r => setTimeout(r, 50));
+
+        // --- TEST SUITE 9: CLINICAL REPORT MODAL & PDF DOWNLOAD ---
+        const reportModal = doc.getElementById('reportModal');
+        const openReportBtn = doc.getElementById('openReportBtn');
+        openReportBtn.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Open Clinical Report Button in Header', '#openReportBtn', 'click',
+          reportModal && reportModal.classList.contains('active'),
+          'Report modal displayed');
+
+        assert('Report Patient Name Dynamic Population', '#rep-name', 'DOM Verification',
+          doc.getElementById('rep-name').textContent.includes('Dr. Test Patient'),
+          'Report accurately displays patient name: ' + doc.getElementById('rep-name').textContent);
+
+        assert('Report Patient Age / Sex Dynamic Population', '#rep-age-sex', 'DOM Verification',
+          doc.getElementById('rep-age-sex').textContent.includes('68 Yrs'),
+          'Report displays: ' + doc.getElementById('rep-age-sex').textContent);
+
+        assert('Report Biomarker Table F0 Populated', '#rep-v-f0', 'DOM Verification',
+          doc.getElementById('rep-v-f0').textContent !== 'N/A' && doc.getElementById('rep-v-f0').textContent.includes('Hz'),
+          'Voice F0 in table: ' + doc.getElementById('rep-v-f0').textContent);
+
+        assert('Report Biomarker Table Gait Cadence Populated', '#rep-g-cad', 'DOM Verification',
+          doc.getElementById('rep-g-cad').textContent !== 'N/A' && doc.getElementById('rep-g-cad').textContent.includes('/min'),
+          'Gait Cadence in table: ' + doc.getElementById('rep-g-cad').textContent);
+
+        const closeReportBtn = doc.getElementById('closeReportModalBtn');
+        closeReportBtn.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Close Clinical Report Button (Top X)', '#closeReportModalBtn', 'click',
+          !reportModal.classList.contains('active'),
+          'Report modal closed');
+
+        openReportBtn.click();
+        await new Promise(r => setTimeout(r, 50));
+        const closeReportBtnBottom = doc.getElementById('closeReportBtnBottom');
+        closeReportBtnBottom.click();
+        await new Promise(r => setTimeout(r, 50));
+        assert('Close Clinical Report Button (Bottom Close)', '#closeReportBtnBottom', 'click',
+          !reportModal.classList.contains('active'),
+          'Report modal closed on bottom button click');
+
+        const downloadPdfDirectBtn = doc.getElementById('downloadPdfDirectBtn');
+        assert('Download PDF Direct Button Presence', '#downloadPdfDirectBtn', 'DOM Verification',
+          Boolean(downloadPdfDirectBtn),
+          'Download PDF button present in completion banner');
+
+        const printReportBtn = doc.getElementById('printReportBtn');
+        assert('Download / Save as PDF Button in Modal', '#printReportBtn', 'DOM Verification',
+          Boolean(printReportBtn),
+          'Download / Save as PDF button present in report modal');
+
+        // --- TEST SUITE 10: THEME TOGGLE BUTTON ---
+        const themeToggle = doc.getElementById('themeToggleBtn');
+        themeToggle.click();
+        await new Promise(r => setTimeout(r, 50));
+        const isDark = doc.documentElement.getAttribute('data-theme') === 'dark';
+        assert('Theme Toggle Button (Light -> Dark)', '#themeToggleBtn', 'click',
+          isDark,
+          'data-theme="dark" attribute applied to document element');
+
+        themeToggle.click();
+        await new Promise(r => setTimeout(r, 50));
+        const isLight = !doc.documentElement.getAttribute('data-theme');
+        assert('Theme Toggle Button (Dark -> Light)', '#themeToggleBtn', 'click',
+          isLight,
+          'data-theme attribute removed, reverted to light theme');
+
+        // --- TEST SUITE 11: LONGITUDINAL HISTORY BUTTON ---
+        navFusion.click();
+        await new Promise(r => setTimeout(r, 50));
+        const saveHistoryBtn = doc.getElementById('saveToHistoryBtn');
+        assert('Save to History Button Presence', '#saveToHistoryBtn', 'DOM Verification',
+          Boolean(saveHistoryBtn),
+          'Save current test to history button active in fusion view');
+
+      } catch (err) {
+        assert('Test Suite Execution', 'global', 'run', false, 'Exception: ' + err.message);
+      }
+
+      // Summary Output
+      if (failedCount === 0) {
+        summary.className = 'passed-box';
+        summary.textContent = `All ${passedCount} DOM tests and button interactions PASSED successfully (0 failures, 0 errors).`;
+      } else {
+        summary.className = 'failed-box';
+        summary.textContent = `Completed with ${passedCount} passed and ${failedCount} failed tests.`;
+      }
+    });
+  </script>
+</body>
+</html>

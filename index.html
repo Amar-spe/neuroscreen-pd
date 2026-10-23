@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroScreen-PD | Clinical Multimodal Screening for Parkinsonian Biomarkers</title>
+  <meta name="description" content="Standardized clinical research tool for non-invasive multimodal screening of Parkinsonian motor and acoustic biomarkers: sustained vowel phonation, finger tapping, Archimedes spiral kinematics, and locomotion telemetry.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Clinical Header & Wordmark Navigation -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-text">
+        <h1>NeuroScreen-PD</h1>
+      </div>
+      <span class="brand-subtitle">Clinical Multimodal Screening</span>
+    </div>
+
+    <nav class="nav-tabs" role="tablist">
+      <button class="nav-tab-btn active" data-view="assessment" id="nav-btn-assessment">
+        Assessment Tests
+      </button>
+      <button class="nav-tab-btn" data-view="fusion" id="nav-btn-fusion">
+        Multimodal Fusion &amp; Risk
+      </button>
+    </nav>
+
+    <div class="profile-bar">
+      <button class="patient-profile-pill" id="openIntakeModalBtn" title="View or edit patient biological profile">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span id="headerPatientSummary">Patient: Eleanor Vance, 64y (M)</span>
+      </button>
+      <span class="live-mode-badge" title="Live Interactive Screening Active">
+        <span class="status-dot completed"></span>
+        <span>Live Interactive</span>
+      </span>
+      <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle light/dark mode" aria-label="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      </button>
+      <button class="btn btn-secondary" id="openReportBtn">
+        Clinical Report
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-container">
+
+
+
+    <!-- ============================================================== -->
+    <!-- VIEW 1: STANDARDIZED MULTIMODAL ASSESSMENT                     -->
+    <!-- ============================================================== -->
+    <section class="app-view active" id="view-assessment">
+      <div class="assessment-layout">
+
+        <!-- Left Stepper Sidebar -->
+        <aside class="assessment-sidebar">
+          <div class="stepper-nav-header">
+            <span class="stepper-label">Testing Battery</span>
+            <span class="stepper-counter">4 Modalities</span>
+          </div>
+
+          <div class="modality-selector vertical-stepper">
+            <div class="modality-card-btn active" data-modality="voice" id="mod-card-voice" role="button" tabindex="0">
+              <div class="stepper-step-row">
+                <span class="step-badge">1</span>
+                <span class="modality-name">Voice Phonation</span>
+                <span class="status-dot" id="dot-voice" title="Modality status"></span>
+              </div>
+              <div class="modality-marker">Acoustic Dysphonia (/a/ task)</div>
+            </div>
+
+            <div class="modality-card-btn" data-modality="tapping" id="mod-card-tapping" role="button" tabindex="0">
+              <div class="stepper-step-row">
+                <span class="step-badge">2</span>
+                <span class="modality-name">Finger Tapping</span>
+                <span class="status-dot" id="dot-tapping" title="Modality status"></span>
+              </div>
+              <div class="modality-marker">Bradykinesia, MDS 3.4</div>
+            </div>
+
+            <div class="modality-card-btn" data-modality="drawing" id="mod-card-drawing" role="button" tabindex="0">
+              <div class="stepper-step-row">
+                <span class="step-badge">3</span>
+                <span class="modality-name">Spiral Drawing</span>
+                <span class="status-dot" id="dot-drawing" title="Modality status"></span>
+              </div>
+              <div class="modality-marker">Kinematic Tremor &amp; Micrographia</div>
+            </div>
+
+            <div class="modality-card-btn" data-modality="gait" id="mod-card-gait" role="button" tabindex="0">
+              <div class="stepper-step-row">
+                <span class="step-badge">4</span>
+                <span class="modality-name">Gait &amp; Mobility</span>
+                <span class="status-dot" id="dot-gait" title="Modality status"></span>
+              </div>
+              <div class="modality-marker">Locomotion &amp; Symmetry</div>
+            </div>
+          </div>
+
+          <div class="sidebar-clinical-card">
+            <div class="sidebar-clinical-title">Testing Protocol</div>
+            <p class="sidebar-clinical-text">
+              Administer modalities in order under quiet, stable test conditions. Patient should be seated comfortably with forearm supported during tapping and drawing tasks.
+            </p>
+          </div>
+        </aside>
+
+        <!-- Right Modality Content Panels -->
+        <div class="assessment-main">
+
+          <!-- Screening Completion Card (Visible when all 4 modalities are completed) -->
+          <div class="completion-banner" id="screeningCompletionCard" style="display: none;">
+            <div class="completion-header">
+              <div class="completion-badge">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Assessment Battery Complete</span>
+              </div>
+              <div class="completion-patient" id="completionPatientTag">Patient: Eleanor Vance (64y)</div>
+            </div>
+            <div class="completion-body">
+              <h3>All 4 Biomarker Modalities Successfully Captured</h3>
+              <p>Acoustic Dysphonia, MDS 3.4 Finger Tapping, Archimedes Kinematic Tremor, and Gait Locomotion tests have been completed and synthesized with clinical biological priors.</p>
+            </div>
+            <div class="completion-actions">
+              <button class="btn btn-primary" id="downloadPdfDirectBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download Clinical PDF Report
+              </button>
+              <button class="btn btn-secondary" id="viewFusionDirectBtn">
+                View Multimodal Fusion &amp; Risk
+              </button>
+            </div>
+          </div>
+
+          <!-- PANE 1: VOICE PHONATION -->
+          <div class="modality-pane active" id="pane-voice">
+            <div class="grid-2">
+              <div class="glass-card">
+                <div class="card-header">
+                  <span class="card-title">Sustained Vowel Phonation (/a/ Task)</span>
+                </div>
+                <p class="card-instruction">
+                  Hold a steady <strong>"ahh"</strong> sound for 3 to 5 seconds at a comfortable, natural pitch and volume directly into your microphone.
+                </p>
+
+                <div class="visualizer-container">
+                  <canvas id="voiceVisualizerCanvas" class="visualizer-canvas" width="600" height="180"></canvas>
+                </div>
+
+                <div class="controls-row">
+                  <button class="btn btn-primary" id="recordVoiceBtn">Record microphone</button>
+                  <button class="btn btn-danger" id="stopVoiceBtn" disabled>Stop &amp; analyze</button>
+                  <button class="btn btn-secondary" id="demoVoiceNormalBtn">Sample: Healthy voice</button>
+                  <button class="btn btn-secondary" id="demoVoicePdBtn">Sample: Parkinsonian voice</button>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <div class="card-header">
+                  <span class="card-title">Acoustic Biomarkers</span>
+                </div>
+
+                <div class="metrics-grid">
+                  <div class="metric-card">
+                    <div class="metric-label">Pitch (F0) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-voice-f0">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">85 – 255 Hz</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:15%; width:70%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Jitter (Local %) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-voice-jitter">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&lt; 1.04%</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:0%; width:35%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Shimmer (Local %) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-voice-shimmer">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&lt; 3.81%</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:0%; width:40%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">HNR (Harmonics-to-Noise) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-voice-hnr">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&gt; 20.0 dB</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:40%; width:60%;"></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="clinical-note-panel">
+                  <h4>Clinical Dysphonia Significance</h4>
+                  <p>
+                    In Parkinson's Disease, basal ganglia dysfunction causes vocal fold rigidity and reduced subglottic pressure control, producing cycle-to-cycle frequency perturbations (elevated Jitter), amplitude instability (elevated Shimmer), and breathiness/turbulence (depressed HNR).
+                  </p>
+                  <div class="citation-footnote">Little et al., IEEE Trans Biomed Eng 2009 · Praat Dysphonia Analysis Protocol</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 2: FINGER TAPPING -->
+          <div class="modality-pane" id="pane-tapping">
+            <div class="grid-2">
+              <div class="glass-card">
+                <div class="card-header">
+                  <span class="card-title">MDS-UPDRS Part III Item 3.4 Protocol</span>
+                </div>
+                <p class="card-instruction">
+                  Tap the target button as rapidly and rhythmically as possible for 10 seconds. You can also tap the <strong>Spacebar</strong> or alternate between <strong>[Z]</strong> and <strong>[M]</strong> keys.
+                </p>
+
+                <div class="tap-interactive-zone">
+                  <div class="tap-timer" id="tapCountdown">10.0s</div>
+                  <button class="tap-button-target" id="tapTargetBtn" disabled>
+                    <span class="tap-target-label">Tap here</span>
+                    <span class="tap-target-hint">or press Spacebar</span>
+                  </button>
+                  <div class="tap-status-row">
+                    Taps registered: <strong id="tapCountDisplay">0</strong>
+                  </div>
+                  <div class="tap-key-guide">
+                    Keyboard inputs: <kbd>Space</kbd> <kbd>Z</kbd> <kbd>M</kbd>
+                  </div>
+                </div>
+
+                <div class="controls-row">
+                  <button class="btn btn-primary" id="startTapBtn">Start 10s motor test</button>
+                  <button class="btn btn-secondary" id="demoTapNormalBtn">Demo: Healthy tap profile</button>
+                  <button class="btn btn-secondary" id="demoTapPdBtn">Demo: Bradykinetic profile</button>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <div class="card-header">
+                  <span class="card-title">Motor Rhythm &amp; Bradykinesia Biomarkers</span>
+                </div>
+
+                <div class="metrics-grid">
+                  <div class="metric-card">
+                    <div class="metric-label">Tap Cadence (Hz) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-tap-freq">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&gt; 4.2 Hz</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:40%; width:60%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Interval CV (%) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-tap-cv">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&lt; 18.0%</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:0%; width:35%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Fatigue Slope (ms/s) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-tap-slope">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&lt; 8.0 ms/s</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:0%; width:45%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Freezing Pauses (&gt;500ms) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-tap-freezing">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&le; 1 pause</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:0%; width:25%;"></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="clinical-note-panel">
+                  <h4>Clinical Bradykinesia Significance</h4>
+                  <p>
+                    Bradykinesia and sequence effect produce progressive slowing in repetition rate (fatigue slope) and intermittent motor arrests or hesitation pauses, quantified by inter-tap interval coefficient of variation.
+                  </p>
+                  <div class="citation-footnote">Goetz et al., Mov Disord 2008 · MDS-UPDRS Item 3.4 Motor Evaluation Protocol</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 3: SPIRAL DRAWING & HANDWRITING -->
+          <div class="modality-pane" id="pane-drawing">
+            <div class="grid-2">
+              <div class="glass-card">
+                <div class="card-header">
+                  <span class="card-title">Archimedes Spiral Drawing (r = b&theta;)</span>
+                </div>
+                <p class="card-instruction">
+                  Trace the dashed spiral guide continuously from the center origin outward using a mouse, trackpad, or touchscreen stylus.
+                </p>
+
+                <div class="drawing-canvas-wrapper">
+                  <canvas id="guideCanvas"></canvas>
+                  <canvas id="spiralCanvas"></canvas>
+                </div>
+
+                <!-- Calm Live Parkinson's Score Tracker -->
+                <div id="spiralLiveHud" class="spiral-live-hud">
+                  <div class="hud-top-row">
+                    <span class="hud-title">
+                      <span id="spiralHudDot" class="status-dot"></span>
+                      <span id="spiralHudLabel">Parkinson's Probability:</span>
+                    </span>
+                    <span id="spiralHudPercentage" class="hud-value tabular-num">0.0%</span>
+                  </div>
+                  <div class="hud-progress-track">
+                    <div id="spiralHudProgressBar" class="hud-progress-fill"></div>
+                  </div>
+                  <div id="spiralHudStatus" class="hud-meta-row">
+                    <span id="spiralHudVerdict">Baseline: 0.0% · Ready to trace spiral</span>
+                    <span id="spiralHudPoints" class="tabular-num">Points: 0</span>
+                  </div>
+                </div>
+
+                <div class="controls-row">
+                  <button class="btn btn-outline" id="clearSpiralBtn">Clear canvas</button>
+                  <button class="btn btn-secondary" id="demoSpiralNormalBtn">Demo: Steady spiral</button>
+                  <button class="btn btn-secondary" id="demoSpiralPdBtn">Demo: Tremor spiral</button>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <div class="card-header">
+                  <span class="card-title">Kinematic Biomarkers</span>
+                  <span class="card-badge badge-pending" id="drawLiveBadge">Verification Ready</span>
+                </div>
+
+                <div class="metrics-grid">
+                  <div class="metric-card">
+                    <div class="metric-label">Spiral RMSE (px) <span class="metric-indicator indicator-normal" id="ind-draw-rmse"></span></div>
+                    <div class="metric-value" id="val-draw-rmse">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&lt; 14.0 px</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:0%; width:35%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Tremor Index (4–7Hz) <span class="metric-indicator indicator-normal" id="ind-draw-tremor"></span></div>
+                    <div class="metric-value" id="val-draw-tremor">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&lt; 0.28</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:0%; width:35%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Micrographia Ratio (%) <span class="metric-indicator indicator-normal" id="ind-draw-micro"></span></div>
+                    <div class="metric-value" id="val-draw-micro">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&gt; 80.0%</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:50%; width:50%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Velocity Variation <span class="metric-indicator indicator-normal" id="ind-draw-smooth"></span></div>
+                    <div class="metric-value" id="val-draw-smooth">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&lt; 0.60</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:0%; width:45%;"></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dedicated SVM Classification Card -->
+                <div class="svm-classification-panel">
+                  <div class="svm-panel-header">
+                    <span class="svm-panel-title">SVM (RBF Kernel) Dataset Classification</span>
+                    <span class="card-badge badge-ready" id="val-draw-svm-badge">Baseline (0.0% Risk)</span>
+                  </div>
+
+                  <div class="svm-stats-grid">
+                    <div class="svm-stat-box">
+                      <span class="stat-label">Parkinsonian Probability</span>
+                      <span id="val-draw-svm-score" class="stat-value tabular-num">0.0%</span>
+                    </div>
+                    <div class="svm-stat-box">
+                      <span class="stat-label">Hyperplane Distance f(x)</span>
+                      <span id="val-draw-svm-dist" class="stat-value tabular-num">-1.80</span>
+                    </div>
+                  </div>
+
+                  <div id="val-draw-svm-note" class="svm-clinical-note">
+                    Draw continuously from the center circle outward to evaluate your kinematic features against the PaHaW &amp; Oxford Parkinson's dataset distributions.
+                  </div>
+
+                  <div class="svm-action-row">
+                    <div id="draw-log-status" class="svm-log-status">
+                      <span class="status-dot completed"></span>
+                      <span>Auto-logger active</span>
+                    </div>
+                    <div class="svm-export-btns">
+                      <button class="btn btn-secondary btn-sm" id="exportLogJsonBtn">Export JSON</button>
+                      <button class="btn btn-secondary btn-sm" id="exportLogCsvBtn">Export CSV</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="clinical-note-panel">
+                  <h4>Clinical Handwriting Significance</h4>
+                  <p>
+                    Archimedes spiral drawing isolates action and postural tremors in the 4–7 Hz frequency range. Micrographia (progressive shrinkage of stroke size due to motor cramping) and erratic acceleration profiles indicate basal ganglia motor circuit impairment.
+                  </p>
+                  <div class="citation-footnote">Sakar et al., IEEE TBME 2013 · PaHaW Parkinson's Handwriting Dataset · Oxford Movement Disorders Repository</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE 4: GAIT & MOBILITY -->
+          <div class="modality-pane" id="pane-gait">
+            <div class="grid-2">
+              <div class="glass-card">
+                <div class="card-header">
+                  <span class="card-title">Short Walking Task (Inertial Sensing)</span>
+                </div>
+                <p class="card-instruction">
+                  Walk naturally for 10–20 steps. On mobile devices, device motion sensors collect 3-axis acceleration. On desktop, evaluate simulated locomotion telemetry.
+                </p>
+
+                <div class="gait-stream-box">
+                  <canvas id="gaitWaveCanvas" width="550" height="150"></canvas>
+                  <div id="gaitLiveInfo" class="gait-status-text">Status: Ready for acquisition</div>
+                </div>
+
+                <div class="controls-row">
+                  <button class="btn btn-primary" id="startGaitSensorBtn">Start sensor acquisition</button>
+                  <button class="btn btn-danger" id="stopGaitSensorBtn" disabled>Stop &amp; calculate</button>
+                  <button class="btn btn-secondary" id="demoGaitNormalBtn">Demo: Steady gait</button>
+                  <button class="btn btn-secondary" id="demoGaitPdBtn">Demo: Asymmetric gait</button>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <div class="card-header">
+                  <span class="card-title">Locomotion Biomarkers</span>
+                </div>
+
+                <div class="metrics-grid">
+                  <div class="metric-card">
+                    <div class="metric-label">Step Cadence (/min) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-gait-cadence">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">95 – 125 /min</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:30%; width:50%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Stride Variability (CV %) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-gait-cv">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&lt; 5.5%</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:0%; width:35%;"></div></div>
+                    </div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Bilateral Symmetry (%) <span class="metric-indicator indicator-normal"></span></div>
+                    <div class="metric-value" id="val-gait-sym">--</div>
+                    <div class="metric-reference">
+                      <span class="ref-text">&gt; 88.0%</span>
+                      <div class="ref-bar"><div class="ref-bar-zone" style="left:60%; width:40%;"></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="clinical-note-panel">
+                  <h4>Clinical Gait Significance &amp; Dataset Benchmark</h4>
+                  <p>
+                    Parkinsonian locomotion is characterized by bradykinetic hypokinesia (reduced cadence), short shuffling strides with heightened stride-to-stride timing variability (CV%), and lateralized asymmetry. Decision boundary is mathematically calibrated against the <strong>PhysioNet Gait in Parkinson's Disease Database</strong> (Hausdorff et al., 93 PD patients vs 73 age-matched controls) and <strong>Arora et al.</strong> smartphone locomotion telemetry (JAMA Neurology, AUC 0.92).
+                  </p>
+                  <div class="citation-footnote">PhysioNet Gait Database (Hausdorff et al., 2000) · Arora et al., JAMA Neurology 2015 Smartphone Telemetry</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- VIEW 2: MULTIMODAL FUSION & CLINICAL RISK DASHBOARD             -->
+    <!-- ============================================================== -->
+    <section class="app-view" id="view-fusion">
+      <!-- Fusion Gauge & Risk Overview -->
+      <div class="fusion-overview-card">
+        <div class="risk-dial-container">
+          <div class="circular-gauge">
+            <svg viewBox="0 0 190 190">
+              <circle class="gauge-bg" cx="95" cy="95" r="80"></circle>
+              <circle class="gauge-progress" id="fusionGaugeCircle" cx="95" cy="95" r="80"></circle>
+            </svg>
+            <div class="gauge-center-text">
+              <div class="gauge-percentage tabular-num" id="fusionGaugeValue">0%</div>
+              <div class="gauge-status-label" id="fusionGaugeLabel">PENDING</div>
+            </div>
+          </div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem; font-family:var(--font-mono);">
+            Multimodal Fusion Index
+          </div>
+        </div>
+
+        <div class="fusion-details">
+          <h2 class="fusion-title">Multimodal Risk Assessment Score</h2>
+          <p class="fusion-summary">
+            Late fusion ensemble combining standardized acoustic dysphonia, finger-tapping bradykinesia, dynamic spiral tremor, and gait locomotion measurements.
+          </p>
+
+          <h4 style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.6rem;">Modality Attribution Breakdown (Explainable AI)</h4>
+          <div class="modality-contributions" id="modalityContributionList">
+            <!-- Dynamically populated -->
+          </div>
+
+          <div class="bio-prior-breakdown" id="bioPriorBreakdown">
+            <h4 style="font-size:0.82rem; color:var(--text-muted); margin:0.85rem 0 0.35rem;">Patient Biological Priors (MDS Research Criteria)</h4>
+            <div id="bioPriorTags" class="bio-prior-tags">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intervention & Clinical Referral Protocol -->
+      <div class="intervention-alert-card intervention-normal" id="interventionAlertCard">
+        <div class="intervention-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <div class="intervention-body">
+          <h3 id="interventionTitle">Low Risk (Normative Baseline)</h3>
+          <p id="interventionText">Digital biomarkers are within normative healthy baseline ranges across tested modalities.</p>
+          <ul class="protocol-checklist" id="protocolChecklist">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Radar Chart & Modality Correlation -->
+      <div class="grid-2" style="margin-top: 1.5rem;">
+        <div class="glass-card">
+          <div class="card-header">
+            <span class="card-title">Biomarker Spider Radar Chart</span>
+            <span class="card-badge badge-ready">Multi-Domain</span>
+          </div>
+          <p class="card-instruction">
+            Normative threshold envelope shown in green. Observed patient biomarker values mapped across 8 standardized axes.
+          </p>
+          <div style="display:flex; justify-content:center; align-items:center;">
+            <canvas id="biomarkerRadarCanvas" width="460" height="380"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header">
+            <span class="card-title">Standardized Assessment Summary</span>
+            <span class="card-badge badge-pending">Patient #PT-2026-089</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.85rem; font-size:0.84rem;">
+            <div style="display:flex; justify-content:space-between; padding-bottom:0.45rem; border-bottom:1px solid var(--border-subtle);">
+              <span style="color:var(--text-muted);">Voice Phonation Dysphonia:</span>
+              <strong style="font-family:var(--font-mono);">Jitter &amp; Shimmer Perturbation Analysis</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding-bottom:0.45rem; border-bottom:1px solid var(--border-subtle);">
+              <span style="color:var(--text-muted);">Hand Movement Bradykinesia:</span>
+              <strong style="font-family:var(--font-mono);">10s MDS-UPDRS Item 3.4 Telemetry</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding-bottom:0.45rem; border-bottom:1px solid var(--border-subtle);">
+              <span style="color:var(--text-muted);">Spiral Drawing Tremor:</span>
+              <strong style="font-family:var(--font-mono);">Archimedes Kinematic Deviation (RMSE)</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding-bottom:0.45rem; border-bottom:1px solid var(--border-subtle);">
+              <span style="color:var(--text-muted);">Gait Locomotion:</span>
+              <strong style="font-family:var(--font-mono);">Cadence &amp; Bilateral Symmetry Index</strong>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <button class="btn btn-primary" id="saveToHistoryBtn" style="width:100%;">
+              Save assessment to longitudinal patient record
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Editorial Institutional Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <div class="footer-brand">NeuroScreen-PD</div>
+        <div class="footer-meta">
+          Clinical Research Tool · Version 2.4.1 · Standardized Multimodal Screening Battery
+        </div>
+        <div class="footer-credit">
+          Standardized Digital Biomarker Screening &amp; Telemonitoring System
+        </div>
+        <div class="footer-guidance">
+          Clinical Guidance: Dr. Sharvari Deshmukh (Consultant Neurologist)
+        </div>
+      </div>
+      <div class="footer-right">
+        <div class="footer-citations">
+          Biomarker models calibrated against UCI Voice Phonation, MDS-UPDRS Part III Item 3.4, PaHaW Handwriting, and PhysioNet Gait Locomotion repositories.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================================================== -->
+  <!-- CLINICAL SUMMARY REPORT MODAL (PRINT READY)                    -->
+  <!-- ============================================================== -->
+  <div class="modal-overlay" id="reportModal">
+    <div class="report-modal-content">
+      <button class="modal-close-btn" id="closeReportModalBtn" title="Close">&times;</button>
+
+      <div class="report-header">
+        <div>
+          <h2>NeuroScreen-PD</h2>
+          <p style="font-size:0.82rem; color:#64748b; font-weight:600;">CLINICAL NEUROLOGY SCREENING PROTOCOL</p>
+          <p style="font-size:0.8rem; color:var(--accent); font-weight:700;">MULTIMODAL DIGITAL BIOMARKER ASSESSMENT REPORT</p>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.75rem; color:#64748b;">Report Date:</div>
+          <div id="rep-date" style="font-family:var(--font-mono); font-size:0.85rem; font-weight:600;">2026-10-23</div>
+        </div>
+      </div>
+
+      <div class="report-meta-grid">
+        <div><strong>Patient Name:</strong> <span id="rep-name">Eleanor Vance</span></div>
+        <div><strong>Patient ID:</strong> <span id="rep-id">PT-2026-089</span></div>
+        <div><strong>Age / Gender:</strong> <span id="rep-age-sex">64 Yrs / Male</span></div>
+        <div><strong>Dominant Hand:</strong> <span id="rep-hand">Right Handed</span></div>
+        <div><strong>Family History:</strong> <span id="rep-family">First-Degree (Parent/Sibling)</span></div>
+        <div><strong>Prodromal Risk Factors:</strong> <span id="rep-prodromal">RBD (Dream Enactment), Hyposmia</span></div>
+        <div style="grid-column: 1 / -1; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; border-top:1px dashed #E2E8F0; padding-top:0.5rem; margin-top:0.25rem;">
+          <div><strong>Screening Indicator (Fused Risk):</strong> <span id="rep-risk" style="font-weight:700; color:#B91C1C;">68% (HIGH RISK)</span></div>
+          <div id="rep-bio-prior-badge" style="font-size:0.75rem; color:var(--accent); font-weight:600;">MDS Prodromal Bio-Priors Integrated</div>
+        </div>
+      </div>
+
+      <div id="rep-bio-summary-box" style="margin-bottom: 1.25rem; font-size: 0.8rem; padding: 0.65rem 0.85rem; background: #F8FAFC; border-left: 3px solid var(--accent); border-radius: 2px; line-height: 1.45;">
+        <!-- Dynamically populated with bio prior summary -->
+      </div>
+
+      <h3 class="report-section-title">1. Multimodal Digital Biomarker Measurements</h3>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Modality Domain</th>
+            <th>Biomarker Feature</th>
+            <th>Observed Value</th>
+            <th>Clinical Normative Range</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="4"><strong>Acoustic Phonation</strong></td>
+            <td>Fundamental Frequency (F0)</td>
+            <td id="rep-v-f0">--</td>
+            <td>85 – 255 Hz</td>
+          </tr>
+          <tr>
+            <td>Jitter (cycle perturbation)</td>
+            <td id="rep-v-jit">--</td>
+            <td>&lt; 1.04% (Little et al.)</td>
+          </tr>
+          <tr>
+            <td>Shimmer (amplitude perturbation)</td>
+            <td id="rep-v-shim">--</td>
+            <td>&lt; 3.81% (Tsanas et al.)</td>
+          </tr>
+          <tr>
+            <td>Harmonics-to-Noise Ratio (HNR)</td>
+            <td id="rep-v-hnr">--</td>
+            <td>&gt; 20.0 dB</td>
+          </tr>
+
+          <tr>
+            <td rowspan="3"><strong>Finger Tapping (MDS 3.4)</strong></td>
+            <td>Tapping Cadence</td>
+            <td id="rep-t-freq">--</td>
+            <td>&gt; 4.2 Hz</td>
+          </tr>
+          <tr>
+            <td>Rhythm Variability (CV %)</td>
+            <td id="rep-t-cv">--</td>
+            <td>&lt; 18.0%</td>
+          </tr>
+          <tr>
+            <td>Hesitation / Freezing Pauses</td>
+            <td id="rep-t-pause">--</td>
+            <td>&le; 1 pause (&gt;500ms)</td>
+          </tr>
+
+          <tr>
+            <td rowspan="3"><strong>Archimedes Spiral</strong></td>
+            <td>Trajectory Error (RMSE)</td>
+            <td id="rep-d-rmse">--</td>
+            <td>&lt; 14.0 px</td>
+          </tr>
+          <tr>
+            <td>Action Tremor Index (4–7Hz)</td>
+            <td id="rep-d-trem">--</td>
+            <td>&lt; 0.28 (Sakar et al.)</td>
+          </tr>
+          <tr>
+            <td>Micrographia Shrinkage</td>
+            <td id="rep-d-micro">--</td>
+            <td>&gt; 80.0% of envelope</td>
+          </tr>
+
+          <tr>
+            <td rowspan="3"><strong>Gait Locomotion</strong></td>
+            <td>Cadence</td>
+            <td id="rep-g-cad">--</td>
+            <td>95 – 125 steps/min</td>
+          </tr>
+          <tr>
+            <td>Stride Variability (CV %)</td>
+            <td id="rep-g-cv">--</td>
+            <td>&lt; 5.5% (Arora et al.)</td>
+          </tr>
+          <tr>
+            <td>Bilateral Symmetry Index</td>
+            <td id="rep-g-sym">--</td>
+            <td>&gt; 88.0%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="report-section-title">2. Clinical Follow-up &amp; Advisory</h3>
+      <p id="rep-recommendation" style="font-size:0.84rem; color:#334155; margin-bottom:1rem; line-height:1.6;">
+        Potentially significant Parkinsonian motor and acoustic symptom patterns detected across multiple modalities. Repeat standardized assessment in 48–72 hours to verify persistence. If persistent, formal neurological examination (MDS-UPDRS Part III) is recommended.
+      </p>
+
+      <div class="report-disclaimer">
+        <strong>CLINICAL SAFETY LIMITATION &amp; DISCLAIMER:</strong> This document is generated by the NeuroScreen-PD clinical screening platform. The outputs represent non-invasive digital screening indicators and do NOT constitute a definitive medical diagnosis, clinical prognosis, or prescription of treatment. A certified neurologist must perform formal clinical evaluation.
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
+        <button class="btn btn-secondary" id="closeReportBtnBottom">
+          Close
+        </button>
+        <button class="btn btn-primary" id="printReportBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download / Save as PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PATIENT CLINICAL INTAKE & BIOLOGICAL PROFILE MODAL             -->
+  <!-- ============================================================== -->
+  <div class="modal-overlay" id="patientIntakeModal">
+    <div class="intake-modal-content">
+      <button class="modal-close-btn" id="closeIntakeModalBtn" title="Close">&times;</button>
+      
+      <div class="intake-header">
+        <div class="intake-badge">Standardized Clinical Intake</div>
+        <h2>Patient Baseline &amp; Biological Risk Profile</h2>
+        <p class="intake-subtitle">
+          Please provide patient demographics and key biological indicators. According to Movement Disorder Society (MDS) prodromal Parkinson's research criteria, demographic and non-motor biological markers establish patient-specific Bayesian prior weights that calibrate downstream motor and acoustic biomarker predictions.
+        </p>
+      </div>
+
+      <form id="patientIntakeForm" onsubmit="return false;">
+        <div class="intake-grid">
+          <!-- Column 1: Demographics & Genetics -->
+          <div class="intake-section">
+            <h4 class="intake-section-title">1. Patient Demographics &amp; Laterality</h4>
+            
+            <div class="form-group">
+              <label for="intakeName">Full Patient Name</label>
+              <input type="text" id="intakeName" class="form-input" placeholder="e.g., Eleanor Vance" required value="Eleanor Vance">
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="intakeAge">Age (Years)</label>
+                <input type="number" id="intakeAge" class="form-input" min="18" max="110" value="64" required>
+                <span class="form-help">PD incidence rises sharply after age 60.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="intakeGender">Biological Sex</label>
+                <select id="intakeGender" class="form-select" required>
+                  <option value="Male" selected>Male (1.5x prevalence ratio)</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other / Intersex</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="intakeHand">Dominant Hand</label>
+                <select id="intakeHand" class="form-select">
+                  <option value="Right" selected>Right Handed</option>
+                  <option value="Left">Left Handed</option>
+                  <option value="Ambidextrous">Ambidextrous</option>
+                </select>
+                <span class="form-help">Calibrates motor asymmetry analysis.</span>
+              </div>
+
+              <div class="form-group">
+                <label for="intakeId">Patient Record ID</label>
+                <input type="text" id="intakeId" class="form-input" value="PT-2026-089" readonly>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="intakeFamilyHistory">Family History of Parkinson's Disease</label>
+              <select id="intakeFamilyHistory" class="form-select">
+                <option value="none">No known family history (Sporadic)</option>
+                <option value="first-degree" selected>First-degree relative (Parent / Sibling with PD)</option>
+                <option value="extended">Extended family (Grandparent / Uncle / Aunt with PD)</option>
+              </select>
+              <span class="form-help">Accounts for monogenic genetic predisposition (LRRK2, GBA, PRKN).</span>
+            </div>
+          </div>
+
+          <!-- Column 2: MDS Prodromal Biological Markers -->
+          <div class="intake-section">
+            <h4 class="intake-section-title">2. Prodromal Biological Indicators (MDS Criteria)</h4>
+            <p class="intake-note">Non-motor prodromal symptoms frequently precede motor impairment by 5–15 years:</p>
+
+            <div class="prodromal-checklist">
+              <label class="checkbox-card">
+                <input type="checkbox" id="intakeRbd" checked>
+                <div class="checkbox-card-body">
+                  <div class="checkbox-title">
+                    REM Sleep Behavior Disorder (RBD)
+                    <span class="mds-tag">High Specificity (LR > 130)</span>
+                  </div>
+                  <div class="checkbox-desc">
+                    Physical dream enactment: kicking, punching, vocalizing, or thrashing during sleep.
+                  </div>
+                </div>
+              </label>
+
+              <label class="checkbox-card">
+                <input type="checkbox" id="intakeSmell" checked>
+                <div class="checkbox-card-body">
+                  <div class="checkbox-title">
+                    Olfactory Loss / Hyposmia
+                    <span class="mds-tag">MDS Likelihood Ratio: 4.0</span>
+                  </div>
+                  <div class="checkbox-desc">
+                    Unexplained, persistent impairment or total loss of smell sensitivity.
+                  </div>
+                </div>
+              </label>
+
+              <label class="checkbox-card">
+                <input type="checkbox" id="intakeTremor">
+                <div class="checkbox-card-body">
+                  <div class="checkbox-title">
+                    Resting Tremor / Subjective Stiffness
+                    <span class="mds-tag">MDS Cardinal Sign</span>
+                  </div>
+                  <div class="checkbox-desc">
+                    Subtle involuntary shake at rest (pill-rolling) or unilateral limb heaviness.
+                  </div>
+                </div>
+              </label>
+
+              <label class="checkbox-card">
+                <input type="checkbox" id="intakeConstipation">
+                <div class="checkbox-card-body">
+                  <div class="checkbox-title">
+                    Autonomic / Chronic Constipation
+                    <span class="mds-tag">Peripheral Lewy Sign</span>
+                  </div>
+                  <div class="checkbox-desc">
+                    Persistent chronic bowel irregularity unexplained by diet or medications.
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="intake-footer">
+          <button type="button" class="btn btn-secondary" id="skipIntakeBtn">
+            Use Standard Reference Baseline
+          </button>
+          <button type="submit" class="btn btn-primary" id="saveIntakeBtn">
+            Save Profile &amp; Begin Assessment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="js/audio-dsp.js"></script>
+  <script src="js/tapping-engine.js"></script>
+  <script src="js/drawing-engine.js"></script>
+  <script src="js/gait-engine.js"></script>
+  <script src="js/ml-fusion.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
