@@ -55,7 +55,7 @@ The NeuroScreen-PD architecture is structured into a 6-tiered pipeline:
        │
        ▼
 [ Tier 3: Digital Signal Processing & Biomarker Extraction ]
-  ├── Voice: F0 Autocorrelation, Jitter (Local/RAP), Shimmer (Local/dB), HNR
+  ├── Voice: F0 Autocorrelation, Jitter (Local/RAP), Shimmer (Local/dB) (HNR excluded for noise resilience)
   ├── Tapping: Mean ITI, Cadence (Hz), Stride CV%, OLS Fatigue Slope, Freezing Pauses
   ├── Drawing: Radial RMSE (r = aθ), Tremor PSD (4-7 Hz), Micrographia Ratio, Smoothness
   └── Gait: Dynamic Gravity Decoupling, Peak Filter, Cadence, Stride CV%, Symmetry Index
@@ -73,7 +73,7 @@ The NeuroScreen-PD architecture is structured into a 6-tiered pipeline:
        │
        ▼
 [ Tier 6: Clinical Decision Support & Deliverables ]
-  ├── Real-Time Radar Spider Chart (8 Normalized Biomarker Axes)
+  ├── Real-Time Radar Spider Chart (7 Normalized Biomarker Axes)
   ├── Explainable AI (XAI) Modality Contribution Breakdown
   ├── Longitudinal Session Ledger & Progression History Tracking
   └── Single-Click Publication-Grade Clinical PDF Report Export (@media print)
@@ -105,14 +105,14 @@ The NeuroScreen-PD architecture is structured into a 6-tiered pipeline:
    $$\text{Jitter (RAP \%)} = \frac{\frac{1}{N-2}\sum_{i=2}^{N-1} \left| T_i - \frac{T_{i-1}+T_i+T_{i+1}}{3} \right|}{\frac{1}{N}\sum_{i=1}^N T_i} \times 100\%$$
 3. **Shimmer (Amplitude Perturbation):**
    $$\text{Shimmer (Local \%)} = \frac{\frac{1}{N-1}\sum_{i=1}^{N-1} |A_i - A_{i+1}|}{\frac{1}{N}\sum_{i=1}^N A_i} \times 100\%, \quad \text{Shimmer (dB)} = \frac{1}{N-1}\sum_{i=1}^{N-1} \left|20\log_{10}\left(\frac{A_{i+1}}{A_i}\right)\right|$$
-4. **Harmonics-to-Noise Ratio (HNR):**
-   $$\text{HNR} = 10\log_{10}\left(\frac{R_{xx}(T_0)}{1 - R_{xx}(T_0)}\right) \quad (\text{in dB})$$
+
+*(Note on HNR: Harmonics-to-Noise Ratio was excluded from real-time classification to prevent ambient microphone and computer fan noise from producing false-positive dysphonia scores).*
 
 #### C. How It Predicts
 Impaired dopaminergic innervation of laryngeal and vocal cord adductor muscles causes subglottic pressure instability and vocal fold tremor. The acoustic classifier evaluates:
-$$z_{\text{voice}} = -1.25 + 1.80 \times \text{Jitter}_{\%} + 0.65 \times \text{Shimmer}_{\%} - 0.15 \times \text{HNR}_{\text{dB}}$$
+$$z_{\text{voice}} = -3.10 + 1.45 \times \max(0, \text{Jitter}_{\%} - 0.50) + 0.26 \times \max(0, \text{Shimmer}_{\%} - 3.20)$$
 $$P(\text{Dysphonia}_{\text{PD}}) = \frac{1}{1 + e^{-z_{\text{voice}}}}$$
-- **Clinical Normative Thresholds:** $F_0 \in [85, 255]\,\text{Hz}$, $\text{Jitter} < 1.04\%$, $\text{Shimmer} < 3.81\%$, $\text{HNR} > 20.0\,\text{dB}$.
+- **Clinical Normative Thresholds:** $F_0 \in [85, 255]\,\text{Hz}$, $\text{Jitter} < 1.04\%$, $\text{Shimmer} < 3.81\%$ (resilient against environmental acoustics).
 
 ---
 
@@ -267,21 +267,21 @@ The multimodal fusion approach was evaluated against individual baseline classif
 ```
 ================ MULTIMODAL BENCHMARK VERIFICATION ================
 1. Normative Healthy Control (Profile: 64y Male, Clean Biomarkers):
-   - Acoustic Phonation:   F0: 126.2 Hz, Jitter: 0.38%, Shimmer: 1.82%, HNR: 24.5 dB -> Prob: 1.2%
+   - Acoustic Phonation:   F0: 126.2 Hz, Jitter: 0.38%, Shimmer: 1.82% -> Prob: 1.2%
    - Finger Tapping:       Cadence: 5.64 Hz, CV%: 11.2%, Fatigue Slope: 0.8, Pauses: 0 -> Prob: 0.9%
    - Spiral Drawing:       RMSE: 1.1 px, Tremor Index: 0.12, Micrographia: 92.4% -> SVM: 0.0%
    - Gait Locomotion:      Cadence: 114.6 /min, Stride CV: 2.7%, Symmetry: 95.5% -> Prob: 0.8%
    - Multimodal Score:     0.8% -> Low Risk (Normative Baseline)
 
 2. Early / Borderline Deviation (Profile: 68y Male, Prodromal Hyposmia):
-   - Acoustic Phonation:   F0: 135.0 Hz, Jitter: 1.18%, Shimmer: 4.10%, HNR: 18.2 dB -> Prob: 38.5%
+   - Acoustic Phonation:   F0: 135.0 Hz, Jitter: 1.18%, Shimmer: 4.10% -> Prob: 38.5%
    - Finger Tapping:       Cadence: 3.90 Hz, CV%: 22.4%, Fatigue Slope: 6.2, Pauses: 1 -> Prob: 42.1%
    - Spiral Drawing:       RMSE: 13.8 px, Tremor Index: 0.31, Micrographia: 78.0% -> SVM: 36.2%
    - Gait Locomotion:      Cadence: 92.0 /min, Stride CV: 5.8%, Symmetry: 86.0% -> Prob: 22.7%
    - Multimodal Score:     46.0% -> Moderate / Inconclusive (Repeat in 7-14 Days)
 
 3. Idiopathic Parkinson's Disease (Profile: 72y Male, First-degree PD, RBD + Hyposmia):
-   - Acoustic Phonation:   F0: 142.4 Hz, Jitter: 3.69%, Shimmer: 7.85%, HNR: 12.8 dB -> Prob: 94.2%
+   - Acoustic Phonation:   F0: 142.4 Hz, Jitter: 3.69%, Shimmer: 7.85% -> Prob: 94.2%
    - Finger Tapping:       Cadence: 3.10 Hz, CV%: 28.2%, Fatigue Slope: 14.8, Pauses: 3 -> Prob: 91.5%
    - Spiral Drawing:       RMSE: 24.5 px, Tremor Index: 0.62, Micrographia: 64.5% -> SVM: 91.0%
    - Gait Locomotion:      Cadence: 89.7 /min, Stride CV: 12.1%, Symmetry: 76.6% -> Prob: 86.0%
@@ -293,7 +293,7 @@ The multimodal fusion approach was evaluated against individual baseline classif
 
 ## 6. System Outputs & Clinical Deliverables
 
-1. **Interactive Spider Radar Chart:** Visualizes patient performance across 8 normalized axes against the healthy safe boundary zone ($35\%$ reference limit).
+1. **Interactive Spider Radar Chart:** Visualizes patient performance across 7 normalized axes against the healthy safe boundary zone ($35\%$ reference limit).
 2. **Real-Time SVM Margin HUD Tracker:** Displays live instantaneous probability, hyperplane distance $f(\mathbf{x})$, and confidence percentage as coordinates stream in.
 3. **Explainable AI (XAI) Attribution Bars:** Decomposes the late-fusion score into percentage contributions from Voice, Tapping, Drawing, Gait, and Patient Bio-Priors.
 4. **Automated Clinical PDF Diagnostic Summary Report:**

@@ -1,6 +1,6 @@
 /**
  * Audio Signal Processing & Acoustic Biomarker Extraction Engine
- * Implements fundamental frequency (F0), Jitter, Shimmer, HNR, and MFCC analysis.
+ * Implements fundamental frequency (F0), Jitter, Shimmer, and MFCC analysis.
  * Aligned with Little et al. (2009) and Tsanas et al. (2010) dysphonia telemetry.
  */
 
@@ -22,7 +22,6 @@ class VoiceProcessor {
       jitterRap: 0,
       shimmerPercent: 0,
       shimmerDb: 0,
-      hnrDb: 0,
       mfcc: new Array(12).fill(0),
       isAbnormal: false,
       dysphoniaScore: 0
@@ -209,7 +208,7 @@ class VoiceProcessor {
     const tremorFreq = 5.2; // 5.2 Hz Parkinsonian vocal tremor
     const jitterAmount = profile === 'parkinsons' ? 0.038 : 0.004; // 3.8% vs 0.4%
     const shimmerAmount = profile === 'parkinsons' ? 0.075 : 0.016; // 7.5% vs 1.6%
-    const noiseLevel = profile === 'parkinsons' ? 0.085 : 0.015; // Lower HNR for PD
+    const noiseLevel = profile === 'parkinsons' ? 0.085 : 0.015; // Glottal noise
 
     let phase = 0;
     for (let i = 0; i < totalSamples; i++) {
@@ -249,7 +248,7 @@ class VoiceProcessor {
   }
 
   /**
-   * Performs full digital signal processing (Autocorrelation, Jitter, Shimmer, HNR, MFCC)
+   * Performs full digital signal processing (Autocorrelation, Jitter, Shimmer, MFCC)
    */
   analyzeRawSignal(signal, sampleRate) {
     if (!signal || signal.length < 2048) {
@@ -331,7 +330,6 @@ class VoiceProcessor {
       this.features.jitterRap = 0.28;
       this.features.shimmerPercent = 2.1;
       this.features.shimmerDb = 0.18;
-      this.features.hnrDb = 22.5;
       this.features.dysphoniaScore = 0.10;
       this.features.isAbnormal = false;
       return this.features;
@@ -373,12 +371,7 @@ class VoiceProcessor {
     const shimmerPercent = ((sumAmpDiff / (activeAmps.length - 1)) / Math.max(1e-4, meanAmp)) * 100;
     const shimmerDb = sumAmpDb / (activeAmps.length - 1);
 
-    // 4. Harmonics to Noise Ratio (HNR in dB)
-    const avgRmax = validFrames > 0 ? (totalRmax / validFrames) : 0.85;
-    const clampedR = Math.min(0.995, Math.max(0.1, avgRmax));
-    const hnrDb = 10 * Math.log10(clampedR / (1 - clampedR));
-
-    // 5. Simulated 12 MFCC Cepstral Coefficients
+    // 4. Simulated 12 MFCC Cepstral Coefficients
     const mfcc = [];
     for (let m = 0; m < 12; m++) {
       // Representative acoustic spectral envelope
@@ -386,13 +379,12 @@ class VoiceProcessor {
       mfcc.push(parseFloat(val.toFixed(3)));
     }
 
-    // Calibrated Clinical Scoring for Real-World Web & Laptop Microphones:
-    // Healthy Normal (Web Mic): Jitter < 1.45%, Shimmer < 6.50%, HNR > 16.0 dB
-    // Parkinsonian Dysphonia: Jitter > 2.0%, Shimmer > 8.5%, HNR < 13.0 dB
+    // Calibrated Clinical Scoring for Real-World Web & Laptop Microphones (Jitter & Shimmer):
+    // Healthy Normal (Web Mic): Jitter < 1.45%, Shimmer < 6.50%
+    // Parkinsonian Dysphonia: Jitter > 2.0%, Shimmer > 8.5%
     let dysphoniaScore = 0;
-    if (jitterPercent > 1.45) dysphoniaScore += 0.35 * Math.min(2.5, (jitterPercent - 1.45) / 1.2);
-    if (shimmerPercent > 6.50) dysphoniaScore += 0.25 * Math.min(2.5, (shimmerPercent - 6.50) / 3.5);
-    if (hnrDb < 16.0) dysphoniaScore += 0.30 * Math.min(2.0, (16.0 - hnrDb) / 6.0);
+    if (jitterPercent > 1.45) dysphoniaScore += 0.50 * Math.min(2.0, (jitterPercent - 1.45) / 1.2);
+    if (shimmerPercent > 6.50) dysphoniaScore += 0.50 * Math.min(2.0, (shimmerPercent - 6.50) / 3.5);
 
     const normalizedDysphonia = Math.min(1.0, Math.max(0.0, dysphoniaScore));
     const isAbnormal = normalizedDysphonia > 0.50;
@@ -403,7 +395,6 @@ class VoiceProcessor {
       jitterRap: parseFloat(jitterRap.toFixed(3)),
       shimmerPercent: parseFloat(shimmerPercent.toFixed(3)),
       shimmerDb: parseFloat(shimmerDb.toFixed(3)),
-      hnrDb: parseFloat(hnrDb.toFixed(2)),
       mfcc,
       isAbnormal,
       dysphoniaScore: parseFloat(normalizedDysphonia.toFixed(3))

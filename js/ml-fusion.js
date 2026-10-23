@@ -18,8 +18,7 @@ class MultimodalFusionEngine {
       },
       voice: {
         jitter: { mean: 1.12, std: 0.85, healthyMean: 0.45, pdMean: 2.18 },
-        shimmer: { mean: 4.25, std: 2.40, healthyMean: 1.95, pdMean: 6.80 },
-        hnr: { mean: 21.2, std: 5.60, healthyMean: 26.5, pdMean: 14.8 }
+        shimmer: { mean: 4.25, std: 2.40, healthyMean: 1.95, pdMean: 6.80 }
       },
       tapping: {
         cadence: { mean: 4.2, std: 1.15, healthyMean: 5.4, pdMean: 3.1 },
@@ -208,7 +207,7 @@ class MultimodalFusionEngine {
    */
   exportVerificationCSV() {
     if (!this.verificationLog.length) return;
-    const headers = ['VerificationID', 'Timestamp', 'Modality', 'SVM_Score_Percent', 'SVM_Decision_Distance', 'Classification', 'RMSE_or_Jitter', 'Tremor_or_Shimmer', 'Micrographia_or_HNR'];
+    const headers = ['VerificationID', 'Timestamp', 'Modality', 'SVM_Score_Percent', 'SVM_Decision_Distance', 'Classification', 'RMSE_or_Jitter', 'Tremor_or_Shimmer', 'Micrographia_Ratio'];
     const rows = this.verificationLog.map(r => [
       r.id,
       r.timestamp,
@@ -218,7 +217,7 @@ class MultimodalFusionEngine {
       r.svmEvaluation.classification || '',
       r.features.rmseDeviation || r.features.jitterPercent || '',
       r.features.tremorIndex || r.features.shimmerPercent || '',
-      r.features.micrographiaRatio || r.features.hnrDb || ''
+      r.features.micrographiaRatio || ''
     ]);
 
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
@@ -235,13 +234,12 @@ class MultimodalFusionEngine {
    */
   evaluateVoiceModel(features) {
     if (!features || features.f0 === 0) return { prob: 0, completed: false };
-    // Calibrated for consumer laptop/phone microphones:
-    // Normal healthy sustained vowel (Jitter ~0.7-1.3%, Shimmer ~2.5-5.5%, HNR ~16-22 dB) yields prob < 0.20 (LOW RISK)
-    // Marked pathological vocal dysphonia (Jitter > 2.0%, Shimmer > 8.0%, HNR < 13 dB) yields prob > 0.75 (PARKINSONIAN)
-    const z = -2.95 + 
-              (Math.max(0, features.jitterPercent - 0.5) * 1.35) + 
-              (Math.max(0, features.shimmerPercent - 3.20) * 0.22) - 
-              (Math.max(0, features.hnrDb - 14.0) * 0.10);
+    // Calibrated for consumer laptop/phone microphones (Jitter & Shimmer):
+    // Normal healthy sustained vowel (Jitter ~0.7-1.3%, Shimmer ~2.5-5.5%) yields prob < 0.20 (LOW RISK)
+    // Marked pathological vocal dysphonia (Jitter > 2.0%, Shimmer > 8.0%) yields prob > 0.75 (PARKINSONIAN)
+    const z = -3.10 + 
+              (Math.max(0, features.jitterPercent - 0.5) * 1.45) + 
+              (Math.max(0, features.shimmerPercent - 3.20) * 0.26);
     const prob = 1 / (1 + Math.exp(-Math.max(-8, Math.min(8, z))));
     return { prob: parseFloat(prob.toFixed(3)), completed: true };
   }

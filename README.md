@@ -17,7 +17,7 @@ Department of Computer Science and Engineering
 Parkinson's Disease (PD) is a progressive neurodegenerative disorder affecting motor and vocal control. Conventional clinical evaluation relies on periodic physical consultations, which are intermittent and often miss daily fluctuations and early subtle motor decline.
 
 **NeuroScreen-PD** is a non-invasive, multimodal software prototype developed for standardized digital biomarker screening and longitudinal monitoring. It captures four complementary behavioral signals:
-1. **Voice Phonation (Acoustic Dysphonia):** Pitch ($F_0$), Jitter, Shimmer, Harmonics-to-Noise Ratio (HNR), and MFCCs.
+1. **Voice Phonation (Acoustic Dysphonia):** Pitch ($F_0$), Jitter (frequency perturbation), Shimmer (amplitude perturbation), and MFCCs.
 2. **Finger Tapping (MDS-UPDRS Part III Item 3.4):** Cadence (Hz), Inter-Tap Interval variability (CV%), fatigue deceleration slope, and freezing pauses.
 3. **Archimedes Spiral Drawing (Dynamic Handwriting):** Trajectory deviation (RMSE), 4–7 Hz tremor oscillation energy, and micrographia shrinkage ratio.
 4. **Gait Locomotion (Inertial Sensing):** Step cadence, stride interval variability (CV%), and bilateral gait symmetry index.
@@ -55,7 +55,7 @@ parkinsons-multimodal-screening/
 ├── css/
 │   └── styles.css               # Medical dark-mode glassmorphism design system
 ├── js/
-│   ├── audio-dsp.js             # Web Audio API, F0, Jitter, Shimmer, HNR, MFCC
+│   ├── audio-dsp.js             # Web Audio API, F0, Jitter, Shimmer, MFCC
 │   ├── tapping-engine.js        # MDS-UPDRS finger tapping telemetry engine
 │   ├── drawing-engine.js        # Archimedes spiral & tremor analysis engine
 │   ├── gait-engine.js           # Gait cadence, symmetry & stride CV% engine

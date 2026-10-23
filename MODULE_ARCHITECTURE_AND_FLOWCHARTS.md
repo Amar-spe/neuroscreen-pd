@@ -21,7 +21,7 @@ flowchart TD
     end
 
     subgraph DSP["2. Digital Signal Processing & Biomarker Extraction"]
-        D1["Voice DSP: Autocorrelation, Sub-sample Parabolic Fit, Jitter %, Shimmer %, HNR dB, MFCCs"]
+        D1["Voice DSP: Autocorrelation, Sub-sample Parabolic Fit, Jitter %, Shimmer %, MFCCs"]
         D2["Tapping DSP: Mean ITI, Cadence (Hz), Stride CV %, OLS Fatigue Slope, Freezing Pauses"]
         D3["Drawing DSP: Radial RMSE r=bθ, Tremor PSD 4-7 Hz, Micrographia %, Smoothness"]
         D4["Gait DSP: Decoupled Magnitude, Outlier Turn Filter, Cadence, Stride CV %, Symmetry %"]
@@ -43,7 +43,7 @@ flowchart TD
 
     subgraph OUTPUT["5. Clinical Deliverables & Actionable Triage"]
         O1["Risk Stratification: Low (<35%) / Moderate (35-64%) / High (>=65%)"]
-        O2["8-Axis Spider Radar Biomarker Chart"]
+        O2["7-Axis Spider Radar Biomarker Chart"]
         O3["Explainable AI (XAI) Modality Attribution Breakdown"]
         O4["Publication-Grade Printable Clinical PDF Report (@media print)"]
     end
@@ -73,12 +73,12 @@ flowchart TD
 
 | Module Name | What It Does & Biomarkers Extracted | Dataset Used | Machine Learning Model Used |
 | :--- | :--- | :--- | :--- |
-| **Module 1: Voice Phonation** | Captures sustained vowel `/a/` for 3–5s. Extracts pitch ($F_0$), cycle-to-cycle frequency variation (Jitter %), amplitude variation (Shimmer %), Harmonics-to-Noise Ratio (HNR in dB), and 12 MFCC cepstral coefficients. | **Oxford UCI Parkinson's Voice Dataset** *(Little et al., 2007; Tsanas et al., 2012)*<br>• 195 recordings, 31 subjects (23 PD, 8 controls). | **Calibrated Logistic Regressor** + **Random Forest** (100 Trees) & **SVM (RBF Kernel)** baselines. |
+| **Module 1: Voice Phonation** | Captures sustained vowel `/a/` for 3–5s. Extracts pitch ($F_0$), cycle-to-cycle frequency variation (Jitter %), amplitude variation (Shimmer %), and 12 MFCC cepstral coefficients. | **Oxford UCI Parkinson's Voice Dataset** *(Little et al., 2007; Tsanas et al., 2012)*<br>• 195 recordings, 31 subjects (23 PD, 8 controls). | **Calibrated Logistic Regressor** + **Random Forest** (100 Trees) & **SVM (RBF Kernel)** baselines. |
 | **Module 2: Finger Tapping** | Implements MDS-UPDRS Part III Item 3.4. Measures tapping speed (Hz), Inter-Tap Interval variability (CV %), fatigue deceleration slope via Ordinary Least Squares, and freezing motor pauses. | **mPower Mobile Parkinson's Study** *(Sage Bionetworks; Bot et al., 2016, Nature Biotechnology)*<br>• 9,500+ participants, 68,000+ sessions. | **MDS-UPDRS Calibrated Logistic Model** (Evaluates cadence deceleration and arrhythmia). |
 | **Module 3: Spiral Drawing** | Interactive canvas tracking drawing along Archimedes spiral ($r = b\theta$). Extracts Radial RMSE deviation, 4–7 Hz tremor spectral oscillation energy (PSD), micrographia shrinkage ratio, and velocity smoothness. | **PaHaW Parkinson's Handwriting Database** *(Drotár et al., 2016, IEEE JBHI)* & CoMoDa dataset.<br>• 75 subjects (37 PD, 38 healthy controls). | **Support Vector Machine (SVM)** with **Radial Basis Function (RBF)** kernel ($\gamma=0.35$, $C=2.0$) + Platt scaling. |
 | **Module 4: Gait & Locomotion** | Analyzes smartphone 3-axis accelerometer (`DeviceMotionEvent`). Detects vertical heel-strike deceleration peaks, calculates cadence (steps/min), stride interval variability (CV %), bilateral symmetry index (SI %), and filters out indoor turns. | **PhysioNet Gait in Parkinson's Disease Database** *(Hausdorff et al., 2000)* + **JAMA Smartphone Telemetry** *(Arora et al., 2015)*<br>• 93 PD patients, 73 age-matched controls. | **Multivariable Locomotion Logistic Hyperplane** calibrated for indoor & pocket sensors. |
 | **Module 5: Patient Bio-Priors** | Takes biological age, sex, family history, and non-motor prodromal indicators: REM Sleep Behavior Disorder (RBD), Hyposmia (smell loss), resting tremor, and constipation. | **Movement Disorder Society (MDS) Research Criteria for Prodromal Parkinson's Disease** *(Berg et al., 2015)*. | **Bayesian Likelihood Multiplier & Addon Prior Engine**. |
-| **Module 6: Late Fusion Ensemble** | Harmonizes all active modalities through soft-voting weighted ensemble, applies Bayesian priors, scales continuous risk ($0\%\text{–}100\%$), computes XAI contributions, and renders 8-axis radar charts. | Evaluated jointly on cross-modal benchmark distributions. | **Multimodal Late Fusion Ensemble** with **Platt Sigmoid Calibration** (Achieves **96.8% Accuracy**, **0.989 ROC-AUC**). |
+| **Module 6: Late Fusion Ensemble** | Harmonizes all active modalities through soft-voting weighted ensemble, applies Bayesian priors, scales continuous risk ($0\%\text{–}100\%$), computes XAI contributions, and renders 7-axis radar charts. | Evaluated jointly on cross-modal benchmark distributions. | **Multimodal Late Fusion Ensemble** with **Platt Sigmoid Calibration** (Achieves **96.8% Accuracy**, **0.989 ROC-AUC**). |
 
 ---
 
@@ -95,20 +95,17 @@ flowchart LR
     AUTO --> PARAB["Sub-sample Parabolic Peak Interpolation"]
     PARAB --> JIT["Jitter Calculation (RAP & Local %)"]
     BUF --> RMS["RMS Energy Tracking (Onset/Offset Trimmed)"] --> SHIM["Shimmer Calculation (Local % & dB)"]
-    AUTO --> HNR["Harmonics-to-Noise Ratio (HNR in dB)"]
     
     JIT --> LOGIT["Calibrated Logistic Decision Hyperplane"]
     SHIM --> LOGIT
-    HNR --> LOGIT
     LOGIT --> PROB["Voice Posterior Risk: P(Voice_PD) in [0, 1]"]
 ```
 
 #### A. What It Does:
 Detects **Acoustic Dysphonia** (vocal cord dysfunction). Subconscious micro-tremors in laryngeal muscles prevent Parkinson's patients from holding a steady vocal pitch and volume during sustained vowel phonation (`"aaah"`).
 * **Fundamental Frequency ($F_0$):** Pitch stability in Hz.
-* **Jitter (Local % and RAP):** Period-to-period frequency instability (vocal cord tremor).
+* **Jitter (Local % and RAP):** Period-to-period frequency instability (vocal cord micro-tremor).
 * **Shimmer (Local % and dB):** Cycle-to-cycle amplitude perturbation (incomplete vocal fold closure).
-* **HNR (dB):** Ratio of clean vocal harmonics to turbulent glottal airflow breath noise.
 
 #### B. Dataset Details:
 * **Dataset Name:** UCI Machine Learning Repository — Parkinson's Telemonitoring / Voice Dataset.
@@ -118,8 +115,8 @@ Detects **Acoustic Dysphonia** (vocal cord dysfunction). Subconscious micro-trem
 * **Cohort:** 31 participants (23 with idiopathic Parkinson's, 8 healthy controls), 195 sustained vowel recordings.
 
 #### C. Machine Learning Model Used:
-1. **Primary Model (Browser Runtime):** Calibrated Logistic Regressor:
-   $$z_{\text{voice}} = -2.95 + 1.35 \times \max(0, \text{Jitter} - 0.5) + 0.22 \times \max(0, \text{Shimmer} - 3.20) - 0.10 \times \max(0, \text{HNR} - 14.0)$$
+1. **Primary Model (Browser Runtime):** Calibrated Logistic Regressor (Jitter & Shimmer focused):
+   $$z_{\text{voice}} = -3.10 + 1.45 \times \max(0, \text{Jitter} - 0.5) + 0.26 \times \max(0, \text{Shimmer} - 3.20)$$
    $$P(\text{Voice}_{\text{PD}}) = \frac{1}{1 + e^{-z_{\text{voice}}}}$$
 2. **Benchmark Comparison Models (Offline Evaluation):**
    * **Logistic Regression:** 86.4% Accuracy, 0.912 ROC-AUC

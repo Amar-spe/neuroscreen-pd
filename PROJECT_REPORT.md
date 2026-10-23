@@ -64,9 +64,7 @@ During sustained phonation of the open vowel `/a/`, vocal fold vibrations produc
    $$\text{Shimmer (Local \%)} = \frac{\frac{1}{N-1} \sum_{i=1}^{N-1} |A_i - A_{i+1}|}{\frac{1}{N} \sum_{i=1}^N A_i} \times 100\%$$
    $$\text{Shimmer (dB)} = \frac{1}{N-1} \sum_{i=1}^{N-1} \left| 20 \log_{10} \left( \frac{A_{i+1}}{A_i} \right) \right|$$
 
-4. **Harmonics-to-Noise Ratio (HNR):**  
-   Measures glottal signal periodicity against turbulent airflow:
-   $$\text{HNR} = 10 \log_{10} \left( \frac{R_{xx}(T_0)}{1 - R_{xx}(T_0)} \right) \quad (\text{in dB})$$
+*(Note on HNR: Harmonics-to-Noise Ratio was excluded from real-time classification to prevent ambient microphone and computer fan noise from producing false-positive dysphonia scores).*
 
 ### 3.2. Finger-Tapping Motor Telemetry (MDS-UPDRS Item 3.4)
 For a sequence of tap events at timestamps $t_1, t_2, \dots, t_N$, the inter-tap intervals are $ITI_i = t_{i+1} - t_i$.

@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function resetAllModalities() {
-    voiceProcessor.features = { f0: 0, jitterPercent: 0, jitterRap: 0, shimmerPercent: 0, shimmerDb: 0, hnrDb: 0, mfcc: [], isAbnormal: false };
+    voiceProcessor.features = { f0: 0, jitterPercent: 0, jitterRap: 0, shimmerPercent: 0, shimmerDb: 0, mfcc: [], isAbnormal: false };
     tappingProcessor.results = { tapCount: 0, tapFrequencyHz: 0, meanItiMs: 0, stdItiMs: 0, cvPercent: 0, fatigueSlope: 0, freezingPauses: 0, isAbnormal: false };
     drawingProcessor.clearCanvas();
     drawingProcessor.drawTemplateGuide();
@@ -765,11 +765,6 @@ document.addEventListener('DOMContentLoaded', () => {
       vShimmer.textContent = v.shimmerPercent ? `${v.shimmerPercent}%` : '--';
       setIndicator(vShimmer, v.shimmerPercent > 6.0);
     }
-    const vHnr = document.getElementById('val-voice-hnr');
-    if (vHnr) {
-      vHnr.textContent = v.hnrDb ? `${v.hnrDb} dB` : '--';
-      setIndicator(vHnr, v.hnrDb > 0 && v.hnrDb < 16.0);
-    }
 
     // Tapping Elements
     const tFreq = document.getElementById('val-tap-freq');
@@ -986,7 +981,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const labels = [
       'Vocal Jitter',
       'Vocal Shimmer',
-      'HNR Dysphonia',
       'Tapping Slowing',
       'Rhythm Arrhythmia',
       'Spiral Tremor',
@@ -1053,7 +1047,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Strict 0.0 baseline: unassessed modalities or clean baselines are strictly 0.0
     const valJitter = hasVoice ? Math.min(1.0, Math.max(0, (v.jitterPercent - 0.50) / 2.0)) : 0.0;
     const valShimmer = hasVoice ? Math.min(1.0, Math.max(0, (v.shimmerPercent - 3.0) / 7.5)) : 0.0;
-    const valHnr = hasVoice ? Math.min(1.0, Math.max(0, (17.0 - v.hnrDb) / 10.0)) : 0.0;
     const valTapSlowing = hasTap ? Math.min(1.0, Math.max(0, (4.5 - t.tapFrequencyHz) / 2.5)) : 0.0;
     const valArrhythmia = hasTap ? Math.min(1.0, Math.max(0, (t.cvPercent - 12.0) / 24.0)) : 0.0;
     const valTremor = hasDraw ? Math.min(1.0, Math.max(0, (d.tremorIndex - 0.16) / 0.45)) : 0.0;
@@ -1063,7 +1056,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const values = [
       valJitter,
       valShimmer,
-      valHnr,
       valTapSlowing,
       valArrhythmia,
       valTremor,
@@ -1525,7 +1517,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setRepVal('rep-v-f0', v.f0 ? `${v.f0} Hz` : 'N/A');
     setRepVal('rep-v-jit', v.jitterPercent ? `${v.jitterPercent}%` : 'N/A');
     setRepVal('rep-v-shim', v.shimmerPercent ? `${v.shimmerPercent}%` : 'N/A');
-    setRepVal('rep-v-hnr', v.hnrDb ? `${v.hnrDb} dB` : 'N/A');
 
     setRepVal('rep-t-freq', t.tapFrequencyHz ? `${t.tapFrequencyHz} Hz` : 'N/A');
     setRepVal('rep-t-cv', t.cvPercent ? `${t.cvPercent}%` : 'N/A');
