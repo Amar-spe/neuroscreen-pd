@@ -236,11 +236,11 @@ class MultimodalFusionEngine {
   evaluateVoiceModel(features) {
     if (!features || features.f0 === 0) return { prob: 0, completed: false };
     // Calibrated for consumer laptop/phone microphones:
-    // Normal healthy sustained vowel (Jitter ~0.7-1.3%, Shimmer ~2.5-4.5%, HNR ~16-22 dB) yields prob < 0.25 (LOW RISK)
-    // Marked pathological vocal dysphonia (Jitter > 2.0%, Shimmer > 7.0%, HNR < 13 dB) yields prob > 0.75 (PARKINSONIAN)
-    const z = -2.85 + 
+    // Normal healthy sustained vowel (Jitter ~0.7-1.3%, Shimmer ~2.5-5.5%, HNR ~16-22 dB) yields prob < 0.20 (LOW RISK)
+    // Marked pathological vocal dysphonia (Jitter > 2.0%, Shimmer > 8.0%, HNR < 13 dB) yields prob > 0.75 (PARKINSONIAN)
+    const z = -2.95 + 
               (Math.max(0, features.jitterPercent - 0.5) * 1.35) + 
-              (Math.max(0, features.shimmerPercent - 2.0) * 0.38) - 
+              (Math.max(0, features.shimmerPercent - 3.20) * 0.22) - 
               (Math.max(0, features.hnrDb - 14.0) * 0.10);
     const prob = 1 / (1 + Math.exp(-Math.max(-8, Math.min(8, z))));
     return { prob: parseFloat(prob.toFixed(3)), completed: true };

@@ -758,17 +758,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const vJitter = document.getElementById('val-voice-jitter');
     if (vJitter) {
       vJitter.textContent = v.jitterPercent ? `${v.jitterPercent}%` : '--';
-      setIndicator(vJitter, v.jitterPercent > 1.04);
+      setIndicator(vJitter, v.jitterPercent > 1.45);
     }
     const vShimmer = document.getElementById('val-voice-shimmer');
     if (vShimmer) {
       vShimmer.textContent = v.shimmerPercent ? `${v.shimmerPercent}%` : '--';
-      setIndicator(vShimmer, v.shimmerPercent > 3.81);
+      setIndicator(vShimmer, v.shimmerPercent > 6.0);
     }
     const vHnr = document.getElementById('val-voice-hnr');
     if (vHnr) {
       vHnr.textContent = v.hnrDb ? `${v.hnrDb} dB` : '--';
-      setIndicator(vHnr, v.hnrDb > 0 && v.hnrDb < 20);
+      setIndicator(vHnr, v.hnrDb > 0 && v.hnrDb < 16.0);
     }
 
     // Tapping Elements
@@ -1051,9 +1051,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasAnyAssessment = hasVoice || hasTap || hasDraw || hasGait;
 
     // Strict 0.0 baseline: unassessed modalities or clean baselines are strictly 0.0
-    const valJitter = hasVoice ? Math.min(1.0, Math.max(0, (v.jitterPercent - 0.40) / 2.2)) : 0.0;
-    const valShimmer = hasVoice ? Math.min(1.0, Math.max(0, (v.shimmerPercent - 1.80) / 6.5)) : 0.0;
-    const valHnr = hasVoice ? Math.min(1.0, Math.max(0, (20.0 - v.hnrDb) / 12.0)) : 0.0;
+    const valJitter = hasVoice ? Math.min(1.0, Math.max(0, (v.jitterPercent - 0.50) / 2.0)) : 0.0;
+    const valShimmer = hasVoice ? Math.min(1.0, Math.max(0, (v.shimmerPercent - 3.0) / 7.5)) : 0.0;
+    const valHnr = hasVoice ? Math.min(1.0, Math.max(0, (17.0 - v.hnrDb) / 10.0)) : 0.0;
     const valTapSlowing = hasTap ? Math.min(1.0, Math.max(0, (4.5 - t.tapFrequencyHz) / 2.5)) : 0.0;
     const valArrhythmia = hasTap ? Math.min(1.0, Math.max(0, (t.cvPercent - 12.0) / 24.0)) : 0.0;
     const valTremor = hasDraw ? Math.min(1.0, Math.max(0, (d.tremorIndex - 0.16) / 0.45)) : 0.0;

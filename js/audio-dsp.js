@@ -356,17 +356,22 @@ class VoiceProcessor {
     }
     const jitterRap = ((sumRapDiff / (periods.length - 2)) / meanPeriod) * 100;
 
-    // 3. Shimmer (%) & Shimmer (dB)
-    const meanAmp = peakAmplitudes.reduce((a, b) => a + b, 0) / peakAmplitudes.length;
+    // 3. Shimmer (%) & Shimmer (dB) with onset/offset silence trimming
+    const maxAmp = Math.max(...peakAmplitudes, 1e-4);
+    // Discard initial onset and ending breath release ramps (focus on stable sustained vowel body)
+    const stableAmps = peakAmplitudes.filter(a => a >= maxAmp * 0.30);
+    const activeAmps = stableAmps.length >= 4 ? stableAmps : peakAmplitudes;
+
+    const meanAmp = activeAmps.reduce((a, b) => a + b, 0) / activeAmps.length;
     let sumAmpDiff = 0;
     let sumAmpDb = 0;
-    for (let i = 0; i < peakAmplitudes.length - 1; i++) {
-      sumAmpDiff += Math.abs(peakAmplitudes[i] - peakAmplitudes[i + 1]);
-      const ratio = Math.max(1e-4, peakAmplitudes[i + 1] / Math.max(1e-4, peakAmplitudes[i]));
+    for (let i = 0; i < activeAmps.length - 1; i++) {
+      sumAmpDiff += Math.abs(activeAmps[i] - activeAmps[i + 1]);
+      const ratio = Math.max(1e-4, activeAmps[i + 1] / Math.max(1e-4, activeAmps[i]));
       sumAmpDb += Math.abs(20 * Math.log10(ratio));
     }
-    const shimmerPercent = ((sumAmpDiff / (peakAmplitudes.length - 1)) / Math.max(1e-4, meanAmp)) * 100;
-    const shimmerDb = sumAmpDb / (peakAmplitudes.length - 1);
+    const shimmerPercent = ((sumAmpDiff / (activeAmps.length - 1)) / Math.max(1e-4, meanAmp)) * 100;
+    const shimmerDb = sumAmpDb / (activeAmps.length - 1);
 
     // 4. Harmonics to Noise Ratio (HNR in dB)
     const avgRmax = validFrames > 0 ? (totalRmax / validFrames) : 0.85;
@@ -382,11 +387,11 @@ class VoiceProcessor {
     }
 
     // Calibrated Clinical Scoring for Real-World Web & Laptop Microphones:
-    // Healthy Normal (Web Mic): Jitter < 1.45%, Shimmer < 5.20%, HNR > 16.0 dB
-    // Parkinsonian Dysphonia: Jitter > 2.0%, Shimmer > 7.5%, HNR < 13.0 dB
+    // Healthy Normal (Web Mic): Jitter < 1.45%, Shimmer < 6.50%, HNR > 16.0 dB
+    // Parkinsonian Dysphonia: Jitter > 2.0%, Shimmer > 8.5%, HNR < 13.0 dB
     let dysphoniaScore = 0;
     if (jitterPercent > 1.45) dysphoniaScore += 0.35 * Math.min(2.5, (jitterPercent - 1.45) / 1.2);
-    if (shimmerPercent > 5.20) dysphoniaScore += 0.35 * Math.min(2.5, (shimmerPercent - 5.20) / 3.0);
+    if (shimmerPercent > 6.50) dysphoniaScore += 0.25 * Math.min(2.5, (shimmerPercent - 6.50) / 3.5);
     if (hnrDb < 16.0) dysphoniaScore += 0.30 * Math.min(2.0, (16.0 - hnrDb) / 6.0);
 
     const normalizedDysphonia = Math.min(1.0, Math.max(0.0, dysphoniaScore));
