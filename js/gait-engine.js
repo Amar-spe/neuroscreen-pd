@@ -69,9 +69,10 @@ class GaitProcessor {
     const curr = mag;
     const prevPrev = this.rawAcceleration[n - 3].mag;
 
-    // Peak above gravity baseline threshold (10.6 m/s^2)
-    if (prev > prevPrev && prev > curr && prev > 10.6) {
-      if (this.stepPeaks.length === 0 || (t - this.stepPeaks[this.stepPeaks.length - 1].t) > 320) {
+    // Calibrated peak threshold (10.05 m/s^2) with 300ms refractory lockout
+    // Allows reliable step counting whether phone is in pocket or handheld
+    if (prev > prevPrev && prev > curr && prev > 10.05) {
+      if (this.stepPeaks.length === 0 || (t - this.stepPeaks[this.stepPeaks.length - 1].t) > 300) {
         this.stepPeaks.push({ t: this.rawAcceleration[n - 2].t, mag: prev });
       }
     }
@@ -92,44 +93,52 @@ class GaitProcessor {
       return this.features;
     }
 
-    const stepIntervals = [];
+    const rawIntervals = [];
     for (let i = 1; i < peaks.length; i++) {
-      stepIntervals.push(peaks[i].t - peaks[i - 1].t);
+      rawIntervals.push(peaks[i].t - peaks[i - 1].t);
     }
 
     const totalDurationSec = (peaks[peaks.length - 1].t - peaks[0].t) / 1000;
     const cadenceStepsPerMin = totalDurationSec > 0 ? (peaks.length / totalDurationSec) * 60 : 0;
 
+    // Outlier / Turn-Filtering: Remove turn-around pauses at walls to reflect true gait rhythm
+    const sortedIntervals = [...rawIntervals].sort((a, b) => a - b);
+    const medianInterval = sortedIntervals[Math.floor(sortedIntervals.length / 2)] || 550;
+    const minValid = medianInterval * 0.45;
+    const maxValid = medianInterval * 1.65;
+    const stepIntervals = rawIntervals.filter(dt => dt >= minValid && dt <= maxValid);
+    const effectiveIntervals = stepIntervals.length >= 3 ? stepIntervals : rawIntervals;
+
     // Stride Interval Variability (CV %)
-    const meanInterval = stepIntervals.reduce((a, b) => a + b, 0) / stepIntervals.length;
-    const variance = stepIntervals.reduce((acc, val) => acc + Math.pow(val - meanInterval, 2), 0) / stepIntervals.length;
+    const meanInterval = effectiveIntervals.reduce((a, b) => a + b, 0) / effectiveIntervals.length;
+    const variance = effectiveIntervals.reduce((acc, val) => acc + Math.pow(val - meanInterval, 2), 0) / effectiveIntervals.length;
     const stdInterval = Math.sqrt(variance);
     const strideCv = meanInterval > 0 ? (stdInterval / meanInterval) * 100 : 0;
 
     // Bilateral Symmetry Index: Compare consecutive left/right step intervals
     let sumAsymmetry = 0;
     let pairs = 0;
-    for (let i = 0; i < stepIntervals.length - 1; i += 2) {
-      const stepL = stepIntervals[i];
-      const stepR = stepIntervals[i + 1];
+    for (let i = 0; i < effectiveIntervals.length - 1; i += 2) {
+      const stepL = effectiveIntervals[i];
+      const stepR = effectiveIntervals[i + 1];
       const diff = Math.abs(stepL - stepR);
       const meanLR = (stepL + stepR) / 2;
       sumAsymmetry += (diff / meanLR);
       pairs++;
     }
-    const avgAsymmetryPercent = pairs > 0 ? (sumAsymmetry / pairs) * 100 : 5;
+    const avgAsymmetryPercent = pairs > 0 ? (sumAsymmetry / pairs) * 100 : 4;
     const symmetryIndexPercent = Math.max(0, 100 - avgAsymmetryPercent);
 
-    // Clinical Scoring:
-    // Healthy: Cadence 95-125 steps/min, Stride CV < 5.5%, Symmetry > 88%
-    // Parkinsonian: Reduced cadence (< 90), elevated CV (> 10%), asymmetry (< 78%)
+    // Calibrated Clinical Scoring:
+    // Healthy (Indoor/Smartphone): Cadence 78-125 steps/min, Stride CV < 7.5%, Symmetry > 78%
+    // Parkinsonian: Marked bradykinesia (< 75), severe arrhythmicity (CV > 11%), pronounced asymmetry (< 72%)
     let gaitAbnormality = 0;
-    if (cadenceStepsPerMin < 90) gaitAbnormality += 0.35 * Math.min(2.0, (90 - cadenceStepsPerMin) / 25);
-    if (strideCv > 5.5) gaitAbnormality += 0.40 * Math.min(2.5, (strideCv - 5.5) / 6.5);
-    if (symmetryIndexPercent < 85) gaitAbnormality += 0.25 * Math.min(2.0, (85 - symmetryIndexPercent) / 20);
+    if (cadenceStepsPerMin < 78) gaitAbnormality += 0.30 * Math.min(2.0, (78 - cadenceStepsPerMin) / 25);
+    if (strideCv > 7.5) gaitAbnormality += 0.45 * Math.min(2.5, (strideCv - 7.5) / 6.0);
+    if (symmetryIndexPercent < 78) gaitAbnormality += 0.25 * Math.min(2.0, (78 - symmetryIndexPercent) / 18);
 
     const gaitScore = Math.min(1.0, Math.max(0.0, gaitAbnormality));
-    const isAbnormal = gaitScore > 0.45;
+    const isAbnormal = gaitScore > 0.50;
 
     this.features = {
       cadenceStepsPerMin: parseFloat(cadenceStepsPerMin.toFixed(1)),

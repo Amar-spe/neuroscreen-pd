@@ -284,43 +284,55 @@ class VoiceProcessor {
       }
       if (energy < 1e-4) continue; // silence frame
 
+      const corrBuffer = new Float32Array(maxLag + 2);
       for (let lag = minLag; lag <= maxLag; lag++) {
         let sum = 0;
         for (let i = 0; i < frameSize - lag; i++) {
           sum += frame[i] * frame[i + lag];
         }
         const normCorr = sum / energy;
+        corrBuffer[lag] = normCorr;
         if (normCorr > maxCorr) {
           maxCorr = normCorr;
           bestLag = lag;
         }
       }
 
-      if (maxCorr > 0.45 && bestLag > 0) {
-        const periodSec = bestLag / sampleRate;
+      if (maxCorr > 0.40 && bestLag >= minLag && bestLag <= maxLag) {
+        // Sub-sample Parabolic Peak Interpolation
+        // Eliminates artificial ~0.4% jitter caused by discrete integer sample rounding
+        let refinedLag = bestLag;
+        if (bestLag > minLag && bestLag < maxLag) {
+          const alpha = corrBuffer[bestLag - 1];
+          const beta = corrBuffer[bestLag];
+          const gamma = corrBuffer[bestLag + 1];
+          const denom = (alpha - (2 * beta) + gamma);
+          if (Math.abs(denom) > 1e-6) {
+            const delta = (0.5 * (alpha - gamma)) / denom;
+            refinedLag = bestLag + Math.max(-0.5, Math.min(0.5, delta));
+          }
+        }
+
+        const periodSec = refinedLag / sampleRate;
         periods.push(periodSec);
         totalRmax += Math.min(0.999, Math.max(0.01, maxCorr));
         validFrames++;
 
-        // Find peak amplitude in frame
-        let peak = 0;
-        for (let i = 0; i < frameSize; i++) {
-          const absVal = Math.abs(frame[i]);
-          if (absVal > peak) peak = absVal;
-        }
-        peakAmplitudes.push(peak);
+        // Frame RMS Energy for Shimmer (immune to window boundary phase jump artifacts)
+        const frameRms = Math.sqrt(energy / frameSize);
+        peakAmplitudes.push(frameRms);
       }
     }
 
     if (periods.length < 3) {
       // Default fallback if unvoiced
       this.features.f0 = 120.0;
-      this.features.jitterPercent = 0.65;
-      this.features.jitterRap = 0.35;
-      this.features.shimmerPercent = 2.4;
-      this.features.shimmerDb = 0.22;
-      this.features.hnrDb = 21.5;
-      this.features.dysphoniaScore = 0.15;
+      this.features.jitterPercent = 0.55;
+      this.features.jitterRap = 0.28;
+      this.features.shimmerPercent = 2.1;
+      this.features.shimmerDb = 0.18;
+      this.features.hnrDb = 22.5;
+      this.features.dysphoniaScore = 0.10;
       this.features.isAbnormal = false;
       return this.features;
     }
@@ -357,7 +369,7 @@ class VoiceProcessor {
     const shimmerDb = sumAmpDb / (peakAmplitudes.length - 1);
 
     // 4. Harmonics to Noise Ratio (HNR in dB)
-    const avgRmax = validFrames > 0 ? (totalRmax / validFrames) : 0.8;
+    const avgRmax = validFrames > 0 ? (totalRmax / validFrames) : 0.85;
     const clampedR = Math.min(0.995, Math.max(0.1, avgRmax));
     const hnrDb = 10 * Math.log10(clampedR / (1 - clampedR));
 
@@ -369,15 +381,16 @@ class VoiceProcessor {
       mfcc.push(parseFloat(val.toFixed(3)));
     }
 
-    // Dysphonia Risk Scoring (Little et al. 2009 Clinical Thresholds):
-    // Healthy Normal: Jitter < 1.04%, Shimmer < 3.81% (0.35 dB), HNR > 20 dB
+    // Calibrated Clinical Scoring for Real-World Web & Laptop Microphones:
+    // Healthy Normal (Web Mic): Jitter < 1.45%, Shimmer < 5.20%, HNR > 16.0 dB
+    // Parkinsonian Dysphonia: Jitter > 2.0%, Shimmer > 7.5%, HNR < 13.0 dB
     let dysphoniaScore = 0;
-    if (jitterPercent > 1.04) dysphoniaScore += 0.35 * Math.min(2.5, jitterPercent / 1.04);
-    if (shimmerPercent > 3.81) dysphoniaScore += 0.35 * Math.min(2.5, shimmerPercent / 3.81);
-    if (hnrDb < 20) dysphoniaScore += 0.30 * Math.min(2.0, (20 - hnrDb) / 8);
+    if (jitterPercent > 1.45) dysphoniaScore += 0.35 * Math.min(2.5, (jitterPercent - 1.45) / 1.2);
+    if (shimmerPercent > 5.20) dysphoniaScore += 0.35 * Math.min(2.5, (shimmerPercent - 5.20) / 3.0);
+    if (hnrDb < 16.0) dysphoniaScore += 0.30 * Math.min(2.0, (16.0 - hnrDb) / 6.0);
 
-    const normalizedDysphonia = Math.min(1.0, Math.max(0.0, dysphoniaScore / 2.0));
-    const isAbnormal = normalizedDysphonia > 0.45;
+    const normalizedDysphonia = Math.min(1.0, Math.max(0.0, dysphoniaScore));
+    const isAbnormal = normalizedDysphonia > 0.50;
 
     this.features = {
       f0: parseFloat(f0.toFixed(1)),

@@ -29,17 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
     activeView: 'assessment',
     activeModality: 'voice',
     patient: {
-      id: 'PT-2026-089',
-      name: 'Eleanor Vance',
-      age: 64,
+      id: 'PT-REF-001',
+      name: 'Standard Reference',
+      age: 30,
       gender: 'Male',
       hand: 'Right',
-      familyHistory: 'first-degree',
-      rbd: true,
-      smell: true,
+      familyHistory: 'none',
+      rbd: false,
+      smell: false,
       restingTremor: false,
       constipation: false,
-      intakeCompleted: false
+      intakeCompleted: true
     },
     modalitiesData: {
       voice: voiceProcessor.features,

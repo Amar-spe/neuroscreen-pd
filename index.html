@@ -30,7 +30,7 @@
     <div class="profile-bar">
       <button class="patient-profile-pill" id="openIntakeModalBtn" title="View or edit patient biological profile">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        <span id="headerPatientSummary">Patient: Eleanor Vance, 64y (M)</span>
+        <span id="headerPatientSummary">Patient: Standard Reference, 30y</span>
       </button>
       <span class="live-mode-badge" title="Live Interactive Screening Active">
         <span class="status-dot completed"></span>
@@ -787,13 +787,13 @@
             
             <div class="form-group">
               <label for="intakeName">Full Patient Name</label>
-              <input type="text" id="intakeName" class="form-input" placeholder="e.g., Eleanor Vance" required value="Eleanor Vance">
+              <input type="text" id="intakeName" class="form-input" placeholder="e.g., Standard Reference" required value="Standard Reference">
             </div>
 
             <div class="form-row-2">
               <div class="form-group">
                 <label for="intakeAge">Age (Years)</label>
-                <input type="number" id="intakeAge" class="form-input" min="18" max="110" value="64" required>
+                <input type="number" id="intakeAge" class="form-input" min="18" max="110" value="30" required>
                 <span class="form-help">PD incidence rises sharply after age 60.</span>
               </div>
 
@@ -820,15 +820,15 @@
 
               <div class="form-group">
                 <label for="intakeId">Patient Record ID</label>
-                <input type="text" id="intakeId" class="form-input" value="PT-2026-089" readonly>
+                <input type="text" id="intakeId" class="form-input" value="PT-REF-001" readonly>
               </div>
             </div>
 
             <div class="form-group">
               <label for="intakeFamilyHistory">Family History of Parkinson's Disease</label>
               <select id="intakeFamilyHistory" class="form-select">
-                <option value="none">No known family history (Sporadic)</option>
-                <option value="first-degree" selected>First-degree relative (Parent / Sibling with PD)</option>
+                <option value="none" selected>No known family history (Sporadic)</option>
+                <option value="first-degree">First-degree relative (Parent / Sibling with PD)</option>
                 <option value="extended">Extended family (Grandparent / Uncle / Aunt with PD)</option>
               </select>
               <span class="form-help">Accounts for monogenic genetic predisposition (LRRK2, GBA, PRKN).</span>
@@ -842,7 +842,7 @@
 
             <div class="prodromal-checklist">
               <label class="checkbox-card">
-                <input type="checkbox" id="intakeRbd" checked>
+                <input type="checkbox" id="intakeRbd">
                 <div class="checkbox-card-body">
                   <div class="checkbox-title">
                     REM Sleep Behavior Disorder (RBD)
@@ -855,7 +855,7 @@
               </label>
 
               <label class="checkbox-card">
-                <input type="checkbox" id="intakeSmell" checked>
+                <input type="checkbox" id="intakeSmell">
                 <div class="checkbox-card-body">
                   <div class="checkbox-title">
                     Olfactory Loss / Hyposmia
