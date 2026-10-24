@@ -322,6 +322,14 @@
           doc.getElementById('rep-g-cad').textContent !== 'N/A' && doc.getElementById('rep-g-cad').textContent.includes('/min'),
           'Gait Cadence in table: ' + doc.getElementById('rep-g-cad').textContent);
 
+        assert('Report Prevention Type Population', '#rep-prev-type', 'DOM Verification',
+          Boolean(doc.getElementById('rep-prev-type') && doc.getElementById('rep-prev-type').textContent.length > 5),
+          'Prevention Type: ' + (doc.getElementById('rep-prev-type') ? doc.getElementById('rep-prev-type').textContent : 'N/A'));
+
+        assert('Report Intervention Type Population', '#rep-interv-type', 'DOM Verification',
+          Boolean(doc.getElementById('rep-interv-type') && doc.getElementById('rep-interv-type').textContent.length > 5),
+          'Intervention Type: ' + (doc.getElementById('rep-interv-type') ? doc.getElementById('rep-interv-type').textContent : 'N/A'));
+
         const closeReportBtn = doc.getElementById('closeReportModalBtn');
         closeReportBtn.click();
         await new Promise(r => setTimeout(r, 50));

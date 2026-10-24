@@ -1529,6 +1529,84 @@ document.addEventListener('DOMContentLoaded', () => {
     setRepVal('rep-g-cad', g.cadenceStepsPerMin ? `${g.cadenceStepsPerMin} /min` : 'N/A');
     setRepVal('rep-g-cv', g.strideVariabilityCv ? `${g.strideVariabilityCv}%` : 'N/A');
     setRepVal('rep-g-sym', g.symmetryIndexPercent ? `${g.symmetryIndexPercent}%` : 'N/A');
+
+    // Dynamic Prevention & Intervention Protocols for Clinical PDF Report
+    const prevTypeEl = document.getElementById('rep-prev-type');
+    const prevBadgeEl = document.getElementById('rep-prev-badge');
+    const prevDescEl = document.getElementById('rep-prev-desc');
+    const prevListEl = document.getElementById('rep-prev-list');
+
+    const intervTypeEl = document.getElementById('rep-interv-type');
+    const intervBadgeEl = document.getElementById('rep-interv-badge');
+    const intervDescEl = document.getElementById('rep-interv-desc');
+    const intervListEl = document.getElementById('rep-interv-list');
+
+    const prev = fusion.preventionProtocol || {
+      type: 'Primary Neuroprotection & Baseline Preservation',
+      badge: 'Primary Prevention',
+      description: 'Evidence-based lifestyle strategies to maintain dopaminergic neuronal vitality and synaptic plasticity.',
+      strategies: [
+        'Engage in 150+ min/week of structured aerobic exercise (cycling, brisk walking, dance) to elevate endogenous BDNF.',
+        'Adopt Mediterranean-DASH (MIND) dietary patterns rich in antioxidants, flavonoids, and omega-3 fatty acids.',
+        'Prioritize 7–8 hours of restorative sleep; monitor for nocturnal movement disruptions or parasomnias.',
+        'Schedule routine digital biomarker re-evaluation in 6–12 months for longitudinal trend monitoring.'
+      ]
+    };
+
+    const interv = fusion.interventionProtocol || {
+      type: 'Routine Wellness & Ambulatory Surveillance',
+      badge: 'Routine Surveillance',
+      description: 'Baseline metrics within normative limits; standard preventive health maintenance advised.',
+      actions: [
+        'Continue regular annual health assessments with primary care practitioner.',
+        'No specialist neurological consultation required based on current normative biomarker profile.',
+        'Maintain personal awareness of motor coordination, handwriting ease, and gait symmetry.'
+      ]
+    };
+
+    if (prevTypeEl) prevTypeEl.textContent = prev.type;
+    if (prevBadgeEl) {
+      prevBadgeEl.textContent = prev.badge;
+      if (fusion.riskCategory === 'HIGH') {
+        prevBadgeEl.style.background = '#FEE2E2';
+        prevBadgeEl.style.color = '#991B1B';
+        prevBadgeEl.style.borderColor = '#FCA5A5';
+      } else if (fusion.riskCategory === 'MODERATE') {
+        prevBadgeEl.style.background = '#FEF3C7';
+        prevBadgeEl.style.color = '#92400E';
+        prevBadgeEl.style.borderColor = '#FCD34D';
+      } else {
+        prevBadgeEl.style.background = '#ECFDF5';
+        prevBadgeEl.style.color = '#065F46';
+        prevBadgeEl.style.borderColor = '#A7F3D0';
+      }
+    }
+    if (prevDescEl) prevDescEl.textContent = prev.description;
+    if (prevListEl && Array.isArray(prev.strategies)) {
+      prevListEl.innerHTML = prev.strategies.map(s => `<li>${s}</li>`).join('');
+    }
+
+    if (intervTypeEl) intervTypeEl.textContent = interv.type;
+    if (intervBadgeEl) {
+      intervBadgeEl.textContent = interv.badge;
+      if (fusion.riskCategory === 'HIGH') {
+        intervBadgeEl.style.background = '#FEE2E2';
+        intervBadgeEl.style.color = '#991B1B';
+        intervBadgeEl.style.borderColor = '#FCA5A5';
+      } else if (fusion.riskCategory === 'MODERATE') {
+        intervBadgeEl.style.background = '#FEF3C7';
+        intervBadgeEl.style.color = '#92400E';
+        intervBadgeEl.style.borderColor = '#FCD34D';
+      } else {
+        intervBadgeEl.style.background = '#EEF2FF';
+        intervBadgeEl.style.color = '#3730A3';
+        intervBadgeEl.style.borderColor = '#C7D2FE';
+      }
+    }
+    if (intervDescEl) intervDescEl.textContent = interv.description;
+    if (intervListEl && Array.isArray(interv.actions)) {
+      intervListEl.innerHTML = interv.actions.map(a => `<li>${a}</li>`).join('');
+    }
   }
 
   // --- PATIENT INTAKE & SCREENING COMPLETION CONTROLLER ---

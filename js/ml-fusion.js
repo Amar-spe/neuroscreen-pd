@@ -317,7 +317,28 @@ class MultimodalFusionEngine {
         completedCount: 0,
         contributions: [],
         bioPriors: [],
-        recommendation: 'Perform at least one modality assessment to compute screening risk.'
+        recommendation: 'Perform at least one modality assessment to compute screening risk.',
+        preventionProtocol: {
+          type: 'Primary Neuroprotection & Baseline Preservation',
+          badge: 'Primary Prevention',
+          description: 'Evidence-based lifestyle strategies to maintain dopaminergic neuronal vitality and synaptic plasticity.',
+          strategies: [
+            'Engage in 150+ min/week of structured aerobic exercise (cycling, brisk walking, dance) to elevate endogenous BDNF.',
+            'Adopt Mediterranean-DASH (MIND) dietary patterns rich in antioxidants, flavonoids, and omega-3 fatty acids.',
+            'Prioritize 7–8 hours of restorative sleep; monitor for nocturnal movement disruptions or parasomnias.',
+            'Schedule routine digital biomarker re-evaluation in 6–12 months for longitudinal trend monitoring.'
+          ]
+        },
+        interventionProtocol: {
+          type: 'Routine Wellness & Ambulatory Surveillance',
+          badge: 'Routine Surveillance',
+          description: 'Baseline metrics within normative limits; standard preventive health maintenance advised.',
+          actions: [
+            'Continue regular annual health assessments with primary care practitioner.',
+            'No specialist neurological consultation required based on current normative biomarker profile.',
+            'Maintain personal awareness of motor coordination, handwriting ease, and gait symmetry.'
+          ]
+        }
       };
     }
 
@@ -411,6 +432,8 @@ class MultimodalFusionEngine {
 
     let recommendation = '';
     let protocolSteps = [];
+    let preventionProtocol = null;
+    let interventionProtocol = null;
 
     if (riskCategory === 'HIGH') {
       recommendation = 'Potentially significant Parkinsonian motor and/or acoustic symptom patterns detected across multiple modalities with integrated biological priors.';
@@ -420,6 +443,29 @@ class MultimodalFusionEngine {
         'Schedule formal clinical motor examination (MDS-UPDRS Part III) and neurological evaluation.',
         'Notice: This software provides screening biomarkers only; it does not constitute a diagnostic confirmation.'
       ];
+      preventionProtocol = {
+        type: 'Tertiary Prevention & Fall/Functional Impairment Mitigation',
+        badge: 'Tertiary Prevention',
+        description: 'Proactive clinical measures to prevent secondary physical injury, functional loss, and medication-induced complications.',
+        strategies: [
+          'Conduct immediate home fall-risk safety evaluation (clear trip hazards, install non-slip grab bars).',
+          'Review medications with a physician to strictly avoid dopamine-antagonist drugs (e.g. metoclopramide, typical neuroleptics).',
+          'Inquire with movement disorder centers regarding eligibility for neuroprotective clinical trials targeting α-synuclein pathology.',
+          'Implement caregiver and patient education regarding early motor fluctuation recognition and energy conservation.'
+        ]
+      };
+      interventionProtocol = {
+        type: 'Urgent Specialist Referral & Multidisciplinary Therapeutic Protocol',
+        badge: 'Urgent Clinical Referral',
+        description: 'Consistent Parkinsonian acoustic and motor deviations warrant comprehensive clinical neurological evaluation.',
+        actions: [
+          'Expedited referral to a board-certified Neurologist or Movement Disorder Specialist for formal MDS-UPDRS Part III staging.',
+          'Repeat standardized digital screening in 48–72 hours to verify symptom persistence prior to clinical consultation.',
+          'Initiate physical therapy referral for LSVT BIG amplitude retraining and auditory/visual stride pacing.',
+          'Initiate speech-language pathology consultation (LSVT LOUD or Expiratory Muscle Strength Training [EMST]).',
+          'Occupational therapy referral for micrographia handwriting guides, weighted utensils, and dexterity ergonomics.'
+        ]
+      };
     } else if (riskCategory === 'MODERATE') {
       recommendation = 'Mild atypical fluctuations detected. These may stem from transient muscular fatigue, sleep disruption, caffeine, or early subtle motor changes.';
       protocolSteps = [
@@ -427,12 +473,54 @@ class MultimodalFusionEngine {
         'Continue longitudinal symptom tracking over 4 weeks to monitor trend trajectory.',
         'Consult a general physician if functional impairment or difficulty with daily living is experienced.'
       ];
+      preventionProtocol = {
+        type: 'Secondary Prodromal Prevention & Active Risk Mitigation',
+        badge: 'Secondary Prevention',
+        description: 'Targeted prodromal surveillance to intercept subclinical progression and eliminate neurotoxic stressors.',
+        strategies: [
+          'Eliminate exposure to occupational and environmental neurotoxins (pesticides, organic solvents, heavy metals).',
+          'Begin targeted sensorimotor, agility, and dynamic balance conditioning to reinforce motor pathways.',
+          'Manage autonomic risk factors (dietary fiber and hydration for constipation; olfactory tracking).',
+          'Repeat standardized multimodal screening in 7–14 days under well-rested conditions to rule out transient fatigue.'
+        ]
+      };
+      interventionProtocol = {
+        type: 'Diagnostic Clarification & Ambulatory Motor Monitoring',
+        badge: 'Diagnostic Clarification',
+        description: 'Subtle motor or acoustic variance detected; clinical correlation and short-term tracking recommended.',
+        actions: [
+          'Consult primary care physician to assess potential secondary confounders (essential tremor, musculoskeletal or sleep issues).',
+          'Maintain a 4-week structured symptom and activity diary to document diurnal or stress-related fluctuations.',
+          'If REM sleep behavior or persistent olfactory deficits exist, consider clinical polysomnography or neurology consultation.'
+        ]
+      };
     } else {
       recommendation = 'Digital biomarkers are within normative healthy baseline ranges across tested modalities.';
       protocolSteps = [
         'Routine follow-up assessment recommended in 3 to 6 months for longitudinal trend monitoring.',
         'Maintain healthy physical activity and active lifestyle.'
       ];
+      preventionProtocol = {
+        type: 'Primary Neuroprotection & Baseline Preservation',
+        badge: 'Primary Prevention',
+        description: 'Evidence-based lifestyle strategies to maintain dopaminergic neuronal vitality and synaptic plasticity.',
+        strategies: [
+          'Engage in 150+ min/week of structured aerobic exercise (cycling, brisk walking, dance) to elevate endogenous BDNF.',
+          'Adopt Mediterranean-DASH (MIND) dietary patterns rich in antioxidants, flavonoids, and omega-3 fatty acids.',
+          'Prioritize 7–8 hours of restorative sleep; monitor for nocturnal movement disruptions or parasomnias.',
+          'Schedule routine digital biomarker re-evaluation in 6–12 months for longitudinal trend monitoring.'
+        ]
+      };
+      interventionProtocol = {
+        type: 'Routine Wellness & Ambulatory Surveillance',
+        badge: 'Routine Surveillance',
+        description: 'Baseline metrics within normative limits; standard preventive health maintenance advised.',
+        actions: [
+          'Continue regular annual health assessments with primary care practitioner.',
+          'No specialist neurological consultation required based on current normative biomarker profile.',
+          'Maintain personal awareness of motor coordination, handwriting ease, and gait symmetry.'
+        ]
+      };
     }
 
     return {
@@ -447,6 +535,8 @@ class MultimodalFusionEngine {
       patientData: patientData || {},
       recommendation,
       protocolSteps,
+      preventionProtocol,
+      interventionProtocol,
       individualResults: { voice: voiceRes, tapping: tapRes, drawing: drawRes, gait: gaitRes }
     };
   }
